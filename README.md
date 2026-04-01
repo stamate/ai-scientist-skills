@@ -76,7 +76,7 @@ sudo apt install texlive-full
 ### Install
 
 ```bash
-git clone <this-repo>
+git clone https://github.com/x-roocky/ai-scientist-skills.git
 cd ai-scientist-skills
 pip install -r requirements.txt
 ```
