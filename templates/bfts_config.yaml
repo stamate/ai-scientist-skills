@@ -1,0 +1,67 @@
+# AI Scientist – Best-First Tree Search Configuration
+# Adapted from AI-Scientist-v2/bfts_config.yaml for Claude Code skills.
+
+# ── Data ─────────────────────────────────────────────────────────────────────
+data_dir: "data"
+preprocess_data: false
+copy_data: true
+
+# ── Task description ─────────────────────────────────────────────────────────
+# Either desc_file (path to .md) or goal (inline string) must be set.
+desc_file: null
+goal: null
+eval: null
+
+# ── Directories ──────────────────────────────────────────────────────────────
+log_dir: logs
+workspace_dir: workspaces
+
+# ── Experiment naming ────────────────────────────────────────────────────────
+exp_name: run
+
+# ── Code execution ───────────────────────────────────────────────────────────
+exec:
+  timeout: 3600          # seconds per experiment run
+  agent_file_name: runfile.py
+
+# ── Report generation ────────────────────────────────────────────────────────
+generate_report: true
+
+# ── Experiment settings ──────────────────────────────────────────────────────
+experiment:
+  num_syn_datasets: 1
+
+# ── Agent (tree search) ─────────────────────────────────────────────────────
+agent:
+  type: parallel
+  num_workers: 2         # parallel BFTS agents (configurable, default 2)
+
+  # Per-stage iteration limits
+  stages:
+    stage1_max_iters: 20   # Initial implementation
+    stage2_max_iters: 12   # Baseline tuning
+    stage3_max_iters: 12   # Creative research
+    stage4_max_iters: 18   # Ablation studies
+
+  # Fallback if stage-specific limits not provided
+  steps: 5
+
+  # Validation settings
+  k_fold_validation: 1
+  data_preview: false
+  expose_prediction: false
+
+  # Tree search strategy
+  search:
+    max_debug_depth: 3     # max consecutive debug retries
+    debug_prob: 0.5        # probability of retrying a failed node
+    num_drafts: 3          # initial root nodes per stage
+
+# ── Paper writeup ────────────────────────────────────────────────────────────
+writeup_type: icbinb       # "icbinb" (4-page) or "icml" (8-page)
+num_cite_rounds: 20
+num_writeup_reflections: 3
+
+# ── Pipeline control ─────────────────────────────────────────────────────────
+skip_writeup: false
+skip_review: false
