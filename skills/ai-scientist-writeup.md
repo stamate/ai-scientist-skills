@@ -81,19 +81,44 @@ For each round:
 4. Ensure no duplicate citation keys. Clean citation keys:
    - Lowercase, no accents, no special characters except `_:-@{},`
 
+5. **Validate citations** — ensure no hallucinated references:
+   - Every `\cite{key}` in the paper must have a matching entry in `references.bib`
+   - Every BibTeX entry should come from a real search result (not fabricated)
+   - Check for duplicate keys and merge if needed
+
 Stop gathering when you have sufficient citations (typically 15-30 for a workshop paper, 30-50 for a full paper) or all rounds are exhausted.
 
-### 4. View and Describe Figures
+**Citation Workflow Summary** (mirrors `gather_citations()` from original):
+```
+For each round (1 to cite_rounds):
+  1. Read current paper text
+  2. Identify sections that need citations (claims without \cite{})
+  3. For each uncited claim, formulate a search query
+  4. Search via tools/search.py (S2 with bibtex) or WebSearch
+  5. Select most relevant paper from results
+  6. Extract/construct BibTeX entry
+  7. Add to references.bib (skip if key already exists)
+  8. Update paper text with \cite{key}
+```
+
+### 4. View and Describe Figures (VLM Review)
+
+This step replaces `generate_vlm_img_review()` and `perform_imgs_cap_ref_review()` from AI-Scientist-v2. Claude's native vision capabilities serve as the VLM.
 
 List all figures in `<exp_dir>/figures/`:
 ```bash
 ls <exp_dir>/figures/*.png <exp_dir>/figures/*.pdf 2>/dev/null
 ```
 
-View each figure using the Read tool. For each, generate:
-- A description of what the figure shows
-- The key takeaway/finding
-- A suggested caption
+View **each** figure using the Read tool. For each figure, analyze:
+1. **Description**: What does the figure show? What data is represented?
+2. **Quality**: Is the figure publication-ready? (axis labels, legends, resolution)
+3. **Key Finding**: What is the main takeaway from this figure?
+4. **Caption Draft**: Write a suggested figure caption (1-3 sentences)
+5. **Redundancy Check**: Are any figures duplicates or near-duplicates? If so, select the best one and flag others for removal.
+6. **Relevance**: Does this figure support a key claim in the paper? If not, consider moving to appendix or removing.
+
+Build a figure description string that will be injected into the paper generation prompt. This ensures the LaTeX generator knows what each figure shows and can reference them accurately.
 
 ### 5. Generate LaTeX Paper
 

@@ -166,7 +166,27 @@ Repeat until stage completion (max_iters reached or completion criteria met):
    "
    ```
 
-#### c. Stage Transition
+#### c. Multi-Seed Evaluation
+
+When a stage completes, run the best node's code with multiple random seeds to validate robustness (mirrors `_run_multi_seed_evaluation` from AI-Scientist-v2):
+
+1. Take the best node's code from the completed stage
+2. Run it `num_seeds` times (default 3) with different random seeds (42, 123, 456)
+3. Collect metrics across all seed runs
+4. Select the seed with the best average performance
+5. Run plot aggregation across seed results using the best node
+
+This ensures results are not dependent on a specific random initialization.
+
+```bash
+# For each seed, modify the seed in runfile.py and re-execute
+for seed in 42 123 456; do
+    sed "s/torch.manual_seed(42)/torch.manual_seed($seed)/" <exp_dir>/workspace/runfile.py > <exp_dir>/workspace/runfile_seed_$seed.py
+    cd <exp_dir>/workspace && timeout 3600 python runfile_seed_$seed.py 2>&1 | tee <exp_dir>/logs/seed_${seed}_output.txt
+done
+```
+
+#### d. Stage Transition
 
 When a stage completes:
 
