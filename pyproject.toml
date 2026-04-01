@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.backends._legacy:_Backend"
+
+[project]
+name = "ai-scientist-skills"
+version = "0.1.0"
+description = "AI Scientist research pipeline as Claude Code skills"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "torch>=2.0",
+    "numpy>=1.24",
+    "matplotlib>=3.7",
+    "seaborn>=0.12",
+    "datasets>=2.14",
+    "transformers>=4.35",
+    "requests>=2.31",
+    "backoff>=2.2",
+    "pymupdf4llm>=0.0.5",
+    "PyMuPDF>=1.23",
+    "pyyaml>=6.0",
+    "tqdm>=4.65",
+    "rich>=13.0",
+]
+
+[tool.setuptools.packages.find]
+include = ["tools*"]

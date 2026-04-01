@@ -1,0 +1,24 @@
+# Core ML
+torch>=2.0
+numpy>=1.24
+matplotlib>=3.7
+seaborn>=0.12
+
+# Data & models
+datasets>=2.14
+transformers>=4.35
+
+# Literature search
+requests>=2.31
+backoff>=2.2
+
+# PDF processing
+pymupdf4llm>=0.0.5
+PyMuPDF>=1.23
+
+# Configuration
+pyyaml>=6.0
+
+# Utilities
+tqdm>=4.65
+rich>=13.0
