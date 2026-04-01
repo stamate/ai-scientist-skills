@@ -1,8 +1,6 @@
 <div align="center">
 
-  <h1>AI Scientist Skills</h1>
-
-  <p><strong>Fully autonomous AI research — from idea to paper — powered by Claude Code.</strong></p>
+  <img src="assets/banner-en.png" alt="AI Scientist Skills" width="100%"/>
 
   <p>
     <img src="https://img.shields.io/badge/Claude_Code-Skills-blueviolet?style=flat-square" alt="Claude Code"/>

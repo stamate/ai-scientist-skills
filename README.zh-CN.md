@@ -1,8 +1,6 @@
 <div align="center">
 
-  <h1>AI Scientist Skills</h1>
-
-  <p><strong>全自主 AI 科研流程 —— 从创意到论文 —— 由 Claude Code 驱动。</strong></p>
+  <img src="assets/banner-zh.png" alt="AI Scientist Skills" width="100%"/>
 
   <p>
     <img src="https://img.shields.io/badge/Claude_Code-Skills-blueviolet?style=flat-square" alt="Claude Code"/>
