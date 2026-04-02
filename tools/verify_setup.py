@@ -99,7 +99,7 @@ def check_latex() -> tuple[bool, bool]:
     if pdflatex:
         print(f"  {CHECK} pdflatex ({pdflatex})")
     else:
-        hint = "brew install --cask mactex-no-gui" if platform.system() == "Darwin" else "sudo apt install texlive-full"
+        hint = "brew install --cask basictex" if platform.system() == "Darwin" else "sudo apt install texlive-full"
         print(f"  {CROSS} pdflatex not found  ({hint})")
 
     if bibtex:

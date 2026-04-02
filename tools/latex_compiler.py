@@ -1,7 +1,7 @@
 """LaTeX compilation utilities.
 
 Wraps pdflatex + bibtex for paper generation.
-Cross-platform: works on Mac (BasicTeX/MacTeX) and Linux (texlive).
+Cross-platform: works on Mac (BasicTeX) and Linux (texlive).
 """
 
 from __future__ import annotations
@@ -72,7 +72,7 @@ def compile_latex(
     bibtex = find_bibtex()
 
     if not pdflatex:
-        return False, None, ["pdflatex not found. Install MacTeX/texlive."]
+        return False, None, ["pdflatex not found. Install BasicTeX (macOS) or texlive (Linux)."]
 
     base_name = main_file.rsplit(".", 1)[0]
     pdf_path = latex_path / f"{base_name}.pdf"

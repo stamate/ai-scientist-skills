@@ -43,7 +43,7 @@ python3 tools/config.py --config FILE      # Load/display config
 
 - **Python**: 3.11+
 - **PyTorch**: 2.0+ (CUDA, MPS, or CPU)
-- **LaTeX**: pdflatex + bibtex (MacTeX on macOS, texlive on Linux)
+- **LaTeX**: pdflatex + bibtex (BasicTeX on macOS, texlive on Linux)
 - **Optional**: `S2_API_KEY` env var for Semantic Scholar API (higher rate limits)
 
 ## Experiment Code Conventions

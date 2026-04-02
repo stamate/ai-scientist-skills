@@ -67,7 +67,7 @@
 
 ```bash
 # macOS
-brew install --cask mactex-no-gui
+brew install --cask basictex
 
 # Ubuntu / Debian
 sudo apt install texlive-full
