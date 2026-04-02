@@ -1,5 +1,5 @@
 ---
-name: pipeline
+name: ai-scientist
 description: Run the complete AI Scientist pipeline — from research ideation through experiment execution, paper writing, and peer review. Orchestrates all sub-skills.
 ---
 

@@ -225,7 +225,7 @@ ai-scientist-skills/
 ├── .claude-plugin/
 │   └── plugin.json            # Agent Skills 插件清单
 ├── skills/                    # 8 个技能（Agent Skills 标准格式）
-│   ├── pipeline/SKILL.md      #   主编排器
+│   ├── ai-scientist/SKILL.md   #   主编排器
 │   ├── ideation/SKILL.md      #   研究创意生成
 │   ├── experiment/SKILL.md    #   4 阶段 BFTS 流水线
 │   ├── experiment-step/SKILL.md #  单次 BFTS 迭代

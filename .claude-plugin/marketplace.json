@@ -13,7 +13,7 @@
       "description": "Full AI research pipeline: ideation, BFTS experiment, plot aggregation, paper writeup, and peer review — all driven by a single agent.",
       "source": "./",
       "skills": [
-        "./skills/pipeline",
+        "./skills/ai-scientist",
         "./skills/ideation",
         "./skills/experiment",
         "./skills/experiment-step",

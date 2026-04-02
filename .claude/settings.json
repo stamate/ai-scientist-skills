@@ -2,7 +2,7 @@
   "skills": {
     "ai-scientist": {
       "type": "prompt",
-      "path": "skills/pipeline/SKILL.md"
+      "path": "skills/ai-scientist/SKILL.md"
     },
     "ai-scientist:ideation": {
       "type": "prompt",

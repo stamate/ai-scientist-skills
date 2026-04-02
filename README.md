@@ -225,7 +225,7 @@ ai-scientist-skills/
 ├── .claude-plugin/
 │   └── plugin.json            # Agent Skills plugin manifest
 ├── skills/                    # 8 skills (Agent Skills standard)
-│   ├── pipeline/SKILL.md      #   Main orchestrator
+│   ├── ai-scientist/SKILL.md   #   Main orchestrator
 │   ├── ideation/SKILL.md      #   Research idea generation
 │   ├── experiment/SKILL.md    #   4-stage BFTS pipeline
 │   ├── experiment-step/SKILL.md #  Single BFTS iteration
