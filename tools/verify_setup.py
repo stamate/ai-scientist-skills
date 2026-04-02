@@ -8,9 +8,11 @@ from __future__ import annotations
 
 import importlib
 import platform
+import re
 import shutil
 import subprocess
 import sys
+from pathlib import Path
 
 # ANSI colors
 GREEN = "\033[92m"
@@ -20,6 +22,34 @@ RESET = "\033[0m"
 CHECK = f"{GREEN}\u2713{RESET}"
 CROSS = f"{RED}\u2717{RESET}"
 WARN = f"{YELLOW}!{RESET}"
+
+
+# pip name -> import name (only for packages where they differ)
+IMPORT_MAP = {
+    "PyMuPDF": "fitz",
+    "pyyaml": "yaml",
+    "pymupdf4llm": "pymupdf4llm",
+    "scikit-learn": "sklearn",
+    "Pillow": "PIL",
+}
+
+
+def parse_requirements() -> list[tuple[str, str]]:
+    """Read requirements.txt and return (pip_name, import_name) pairs."""
+    req_file = Path(__file__).resolve().parent.parent / "requirements.txt"
+    packages = []
+    if not req_file.exists():
+        print(f"  {WARN} requirements.txt not found, skipping package check")
+        return packages
+    for line in req_file.read_text().splitlines():
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        # strip version specifiers: torch>=2.0 -> torch
+        name = re.split(r"[><=!~\[]", line)[0].strip()
+        imp = IMPORT_MAP.get(name, name)
+        packages.append((name, imp))
+    return packages
 
 
 def check_python() -> bool:
@@ -103,23 +133,9 @@ def main():
     if not check_python():
         errors += 1
 
-    # Core packages
+    # Core packages — read from requirements.txt
     print("\n[Python Packages]")
-    packages = [
-        ("torch", "torch"),
-        ("numpy", "numpy"),
-        ("matplotlib", "matplotlib"),
-        ("seaborn", "seaborn"),
-        ("datasets", "datasets"),
-        ("transformers", "transformers"),
-        ("requests", "requests"),
-        ("backoff", "backoff"),
-        ("pymupdf4llm", "pymupdf4llm"),
-        ("PyMuPDF", "fitz"),
-        ("pyyaml", "yaml"),
-        ("tqdm", "tqdm"),
-        ("rich", "rich"),
-    ]
+    packages = parse_requirements()
     for name, imp in packages:
         if not check_package(name, imp):
             errors += 1
