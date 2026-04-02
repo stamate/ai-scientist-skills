@@ -119,7 +119,33 @@ def compile_latex(
                     errors.append("bibtex timed out")
 
     success = pdf_path.exists()
+
+    # Detect missing LaTeX packages from errors
+    if not success and errors:
+        missing_pkgs = _detect_missing_packages(errors)
+        if missing_pkgs:
+            errors.append(
+                f"Missing LaTeX packages: {', '.join(missing_pkgs)}. "
+                f"Run: sudo tlmgr install {' '.join(missing_pkgs)}"
+            )
+
     return success, str(pdf_path) if success else None, errors
+
+
+def _detect_missing_packages(errors: List[str]) -> List[str]:
+    """Parse LaTeX error messages for missing package hints."""
+    import re
+    missing = set()
+    for err in errors:
+        # "! LaTeX Error: File `subfigure.sty' not found."
+        m = re.search(r"File `(\w+)\.sty' not found", err)
+        if m:
+            missing.add(m.group(1))
+        # "! LaTeX Error: Missing package cleveref."
+        m = re.search(r"Missing package (\w+)", err)
+        if m:
+            missing.add(m.group(1))
+    return sorted(missing)
 
 
 def check_page_count(pdf_path: str) -> Optional[int]:

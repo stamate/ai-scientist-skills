@@ -93,6 +93,13 @@ def check_torch_device() -> bool:
         return False
 
 
+# LaTeX packages required by templates (not in BasicTeX by default)
+REQUIRED_TEX_PACKAGES = [
+    "subfigure", "multirow", "cleveref", "booktabs",
+    "microtype", "xspace", "mathtools", "colortbl", "eso-pic",
+]
+
+
 def check_latex() -> tuple[bool, bool]:
     pdflatex = shutil.which("pdflatex")
     bibtex = shutil.which("bibtex")
@@ -102,11 +109,33 @@ def check_latex() -> tuple[bool, bool]:
     else:
         hint = "brew install --cask basictex" if platform.system() == "Darwin" else "sudo apt install texlive-full"
         print(f"  {CROSS} pdflatex not found  ({hint})")
+        return False, bibtex is not None
 
     if bibtex:
         print(f"  {CHECK} bibtex ({bibtex})")
     else:
         print(f"  {CROSS} bibtex not found")
+
+    # Check required LaTeX packages via tlmgr
+    tlmgr = shutil.which("tlmgr")
+    if tlmgr:
+        try:
+            result = subprocess.run(
+                [tlmgr, "list", "--only-installed"],
+                capture_output=True, text=True, timeout=30,
+            )
+            installed = {
+                line.split(":")[0].strip().lstrip("i ")
+                for line in result.stdout.splitlines()
+                if line.startswith("i ")
+            }
+            missing = [p for p in REQUIRED_TEX_PACKAGES if p not in installed]
+            if missing:
+                print(f"  {WARN} Missing LaTeX packages: {', '.join(missing)}")
+                install_cmd = f"sudo tlmgr install {' '.join(missing)}"
+                print(f"      Run: {install_cmd}")
+        except Exception:
+            pass  # tlmgr check is best-effort
 
     return pdflatex is not None, bibtex is not None
 
