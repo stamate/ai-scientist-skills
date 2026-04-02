@@ -31,6 +31,10 @@
     "ai-scientist:lit-search": {
       "type": "prompt",
       "path": "skills/lit-search/SKILL.md"
+    },
+    "ai-scientist:workshop": {
+      "type": "prompt",
+      "path": "skills/workshop/SKILL.md"
     }
   }
 }

@@ -111,7 +111,19 @@ claude "/ai-scientist --workshop examples/ideas/i_cant_believe_its_not_better.md
 
 安装完成后，用自然语言描述你的任务即可。以下是典型的使用场景。
 
-### 1. 运行完整流程
+### 1. 创建你的研究主题（从这里开始）
+
+**你说：**
+> /ai-scientist:workshop
+
+**执行过程：**
+- Claude 通过几个问题了解你的研究兴趣，
+- 帮你细化方向、明确开放问题，
+- 生成一个可直接使用的 workshop 描述 `.md` 文件。
+
+也可以参照 `examples/workshop_template.md` 模板手动编写。
+
+### 2. 运行完整流程
 
 **你说：**
 > /ai-scientist --workshop examples/ideas/i_cant_believe_its_not_better.md
@@ -184,6 +196,7 @@ claude "/ai-scientist --workshop examples/ideas/i_cant_believe_its_not_better.md
 | 类型 | 技能 | 说明 |
 |------|------|------|
 | 工具 | `/ai-scientist:lit-search` | 独立的学术文献搜索（Semantic Scholar + WebSearch 备选） |
+| 工具 | `/ai-scientist:workshop` | 交互式引导创建 workshop/研究主题描述文件 |
 
 ## 实验流程
 
@@ -232,7 +245,8 @@ ai-scientist-skills/
 │   ├── plot/SKILL.md          #   图表聚合
 │   ├── writeup/SKILL.md       #   LaTeX 论文生成
 │   ├── review/SKILL.md        #   同行评审
-│   └── lit-search/SKILL.md    #   文献搜索
+│   ├── lit-search/SKILL.md    #   文献搜索
+│   └── workshop/SKILL.md     #   Workshop 描述创建器
 ├── tools/                     # Python 工具
 │   ├── verify_setup.py        #   环境验证
 │   ├── config.py              #   配置加载

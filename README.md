@@ -111,7 +111,19 @@ claude "/ai-scientist --workshop examples/ideas/i_cant_believe_its_not_better.md
 
 After installation, describe your task in natural language. Below are realistic starting points.
 
-### 1. Run the Full Pipeline
+### 1. Create Your Research Topic (Start Here)
+
+**You say:**
+> /ai-scientist:workshop
+
+**What happens:**
+- Claude asks you a few questions about your research interest,
+- helps you refine the scope and articulate open problems,
+- generates a ready-to-use workshop description `.md` file.
+
+A template is also available at `examples/workshop_template.md` if you prefer to write one manually.
+
+### 2. Run the Full Pipeline
 
 **You say:**
 > /ai-scientist --workshop examples/ideas/i_cant_believe_its_not_better.md
@@ -184,6 +196,7 @@ After installation, describe your task in natural language. Below are realistic 
 | Type | Skill | Description |
 |------|-------|-------------|
 | Utility | `/ai-scientist:lit-search` | Standalone academic literature search (Semantic Scholar + WebSearch fallback). |
+| Utility | `/ai-scientist:workshop` | Interactive guide to create a workshop/topic description file. |
 
 ## Experiment Pipeline
 
@@ -232,7 +245,8 @@ ai-scientist-skills/
 │   ├── plot/SKILL.md          #   Figure aggregation
 │   ├── writeup/SKILL.md       #   LaTeX paper generation
 │   ├── review/SKILL.md        #   Peer review
-│   └── lit-search/SKILL.md    #   Literature search
+│   ├── lit-search/SKILL.md    #   Literature search
+│   └── workshop/SKILL.md     #   Workshop description creator
 ├── tools/                     # Python utilities
 │   ├── verify_setup.py        #   Environment verification
 │   ├── config.py              #   Configuration loading

@@ -20,7 +20,8 @@
         "./skills/plot",
         "./skills/writeup",
         "./skills/review",
-        "./skills/lit-search"
+        "./skills/lit-search",
+        "./skills/workshop"
       ]
     }
   ]

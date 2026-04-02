@@ -14,6 +14,7 @@ This project provides a complete AI research automation pipeline as Claude Code 
 | `/ai-scientist:writeup` | Generate LaTeX paper with citations |
 | `/ai-scientist:review` | Structured peer review (NeurIPS format) |
 | `/ai-scientist:lit-search` | Standalone literature search |
+| `/ai-scientist:workshop` | Interactive workshop description creator |
 
 ## Project Layout
 
