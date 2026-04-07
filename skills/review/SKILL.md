@@ -14,6 +14,7 @@ You are an experienced AI researcher performing a rigorous peer review of a rese
 - `--exp-dir <path>`: Experiment directory (optional, for additional context)
 - `--output <path>`: Output directory for review files (default: same as PDF directory)
 - `--no-codex`: Skip Codex panel review even if Codex is available
+- `--no-scientific-skills`: Skip scientific-critical-thinking assessment even if plugin is available
 
 Parse from the user's message.
 
@@ -170,9 +171,40 @@ Present a concise summary:
 - Top 3 weaknesses
 - Key recommendation
 
-### 9. Codex Panel Review (Optional Enhancement)
+### 9. Scientific Critical Thinking Assessment (Optional Enhancement)
 
-**Skip this step if** Codex is not available or the user specified `--no-codex`.
+**Skip this step if** claude-scientific-skills plugin is not installed, `scientific_skills.enhanced_review` is `false`, or the user specified `--no-scientific-skills`.
+
+When the claude-scientific-skills plugin is available, augment the review with a rigorous evidence quality assessment:
+
+1. **Invoke scientific critical thinking**:
+   ```
+   /scientific-critical-thinking
+   ```
+   Provide the paper text and ask it to evaluate:
+   - **Methodology critique**: Is the study design appropriate? Are controls adequate? Is there selection bias?
+   - **Statistical evaluation**: Are tests appropriate? Are multiple comparisons corrected? Are effect sizes reported?
+   - **Evidence quality**: Using GRADE framework, rate the quality of evidence (High/Moderate/Low/Very Low)
+   - **Logical fallacy detection**: Check for correlation-causation confusion, hasty generalization, cherry-picking, survivorship bias
+   - **Bias assessment**: Identify potential cognitive, selection, measurement, and analysis biases
+
+2. **Save the assessment**:
+   ```bash
+   cat > <output_dir>/evidence_assessment.md << 'MD_EOF'
+   <critical thinking assessment output>
+   MD_EOF
+   ```
+
+3. **Integrate findings** into the review summary:
+   - Add evidence quality grade alongside overall score
+   - Flag any logical fallacies or methodological concerns
+   - Note bias risks that may affect interpretation
+
+This assessment adds scientific rigor to the review without changing the NeurIPS-format scores from steps 1-8.
+
+### 10. Codex Panel Review (Optional Enhancement)
+
+**Skip this step if** Codex is not available, the user specified `--no-codex`, or `codex.enabled` is `"false"` in config.
 
 Check Codex availability (CLI + plugin + config):
 ```bash

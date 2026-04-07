@@ -66,6 +66,14 @@ num_writeup_reflections: 3
 skip_writeup: false
 skip_review: false
 
+# ── Scientific skills (optional — requires claude-scientific-skills plugin) ──
+scientific_skills:
+  enabled: auto              # auto (use if available) | true | false
+  enhanced_literature: true  # /research-lookup, /database-lookup, /paper-lookup in ideation
+  enhanced_writing: true     # /scientific-writing + /citation-management in writeup
+  enhanced_figures: true     # /scientific-visualization in plot phase
+  enhanced_review: true      # /scientific-critical-thinking in review
+
 # ── Codex integration (optional — requires codex-plugin-cc) ─────────────────
 codex:
   enabled: auto              # auto (use if available) | true | false

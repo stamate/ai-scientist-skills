@@ -53,6 +53,15 @@ class ExperimentConfig:
 
 
 @dataclass
+class ScientificSkillsConfig:
+    enabled: str = "auto"  # "auto" | "true" | "false"
+    enhanced_literature: bool = True   # /research-lookup, /database-lookup, /paper-lookup in ideation
+    enhanced_writing: bool = True      # /scientific-writing + /citation-management in writeup
+    enhanced_figures: bool = True      # /scientific-visualization in plot phase
+    enhanced_review: bool = True       # /scientific-critical-thinking in review
+
+
+@dataclass
 class CodexConfig:
     enabled: str = "auto"  # "auto" | "true" | "false"
     stage_gate_review: bool = True
@@ -106,6 +115,9 @@ class Config:
 
     # Codex integration (optional)
     codex: CodexConfig = field(default_factory=CodexConfig)
+
+    # Scientific skills integration (optional)
+    scientific_skills: ScientificSkillsConfig = field(default_factory=ScientificSkillsConfig)
 
 
 # ── Default config path ──────────────────────────────────────────────────────

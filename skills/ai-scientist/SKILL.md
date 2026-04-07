@@ -21,6 +21,7 @@ You are the AI Scientist, an autonomous research agent that generates novel rese
 - `--seed-code <path>`: Path to optional seed code file
 - `--use-codex`: Force enable Codex integration (even if auto-detection fails)
 - `--no-codex`: Force disable Codex integration (even if Codex is installed)
+- `--no-scientific-skills`: Disable claude-scientific-skills integration (even if installed)
 
 Parse from the user's message. If none of `--workshop`, `--idea`, or `--exp-dir` is provided, start with Phase 0.5 (Workshop Creator) to interactively guide the user.
 
@@ -87,6 +88,25 @@ Parse from the user's message. If none of `--workshop`, `--idea`, or `--exp-dir`
    - If CLI found but plugin missing: "Codex CLI found but codex-plugin-cc not installed — install with: claude install gh:stamate/codex-plugin-cc"
    - If CLI + plugin found but auth failed: "Codex installed but not authenticated — run: codex login"
    - If `CODEX_ENABLED=false`: "Codex not enabled — using standard pipeline"
+
+6. **Detect claude-scientific-skills** (optional enhancement):
+
+   Check if the claude-scientific-skills plugin is installed:
+   ```bash
+   # Check common marketplace and cache directories
+   find "$HOME/.claude/plugins" -maxdepth 4 -name "SKILL.md" -path "*scientific*" 2>/dev/null | head -1 | grep -q . && echo "SCIENTIFIC_SKILLS_OK" || echo "SCIENTIFIC_SKILLS_MISSING"
+   ```
+   Also read the `scientific_skills.enabled` value from the loaded config (step 3).
+
+   Determine `SCIENTIFIC_SKILLS_ENABLED`:
+   - If `--no-scientific-skills` is set: `SCIENTIFIC_SKILLS_ENABLED=false`
+   - If `scientific_skills.enabled` is `"false"` in config: `SCIENTIFIC_SKILLS_ENABLED=false`
+   - If `scientific_skills.enabled` is `"auto"`: `SCIENTIFIC_SKILLS_ENABLED=true` only if plugin found
+   - If `scientific_skills.enabled` is `"true"`: `SCIENTIFIC_SKILLS_ENABLED=true` (warn if missing)
+
+   Print result:
+   - If `SCIENTIFIC_SKILLS_ENABLED=true`: "Scientific skills detected — enhanced literature, writing, and review enabled"
+   - If not found: "claude-scientific-skills not found — using standard pipeline (install for 78+ database access, DOI verification, and IMRAD writing)"
 
 ### Phase 0.5: Workshop Creator
 
@@ -182,7 +202,8 @@ The review skill's Step 9 automatically invokes `/codex:paper-review --panel --v
 ```
 /ai-scientist:review --pdf <exp_dir>/paper.pdf --exp-dir <exp_dir> --no-codex
 ```
-The review skill runs only the Claude review (steps 1-8) and skips Step 9.
+
+Also forward `--no-scientific-skills` if `SCIENTIFIC_SKILLS_ENABLED` is false, to skip Step 9 (evidence assessment) in the review skill.
 
 The `/ai-scientist:codex-review` skill exists for standalone use when the user wants Codex-only review without the Claude review.
 
@@ -210,7 +231,9 @@ After all phases complete, provide a summary:
   Review:      <exp_dir>/review.json
     Overall Score: <score>/10
     Decision:      <Accept/Reject>
-  Codex Review: <exp_dir>/codex_review.md (if available)
+  Evidence:    <exp_dir>/evidence_assessment.md (if scientific-skills available)
+    Quality:     <High/Moderate/Low> (GRADE framework)
+  Codex Review: <exp_dir>/codex_review.md (if Codex available)
     Panel:       <recommendation> (Empiricist/Theorist/Practitioner consensus)
     Alignment:   <aligned/minor-discrepancies/major-discrepancies>
 

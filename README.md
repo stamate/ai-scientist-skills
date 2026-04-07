@@ -292,6 +292,27 @@ writeup_type: icbinb       # "icbinb" (4-page) or "icml" (8-page)
 |----------|----------|-------------|
 | `S2_API_KEY` | No | Semantic Scholar API key for higher rate limits. Falls back to unauthenticated access or WebSearch. |
 
+### Scientific Skills Integration (Optional)
+
+Install the [claude-scientific-skills](https://github.com/stamate/claude-scientific-skills) plugin for enhanced research capabilities:
+
+```bash
+claude install gh:stamate/claude-scientific-skills
+```
+
+When scientific skills are available, the pipeline automatically:
+- Uses **78+ scientific databases** (UniProt, STRING, PubChem, ChEMBL, Reactome, etc.) during ideation
+- Searches **10 academic databases** (PubMed, arXiv, bioRxiv, OpenAlex, etc.) for literature
+- Applies **IMRAD prose structure** and **DOI verification** during paper writing
+- Generates **journal-specific figures** with colorblind-safe palettes and significance markers
+- Runs **GRADE evidence assessment** and **bias detection** during review
+
+Disable with `--no-scientific-skills` or in config:
+```yaml
+scientific_skills:
+  enabled: false
+```
+
 ### Codex Integration (Optional)
 
 Install the [codex-plugin-cc](https://github.com/stamate/codex-plugin-cc) plugin for enhanced reviews:
@@ -328,6 +349,8 @@ codex:
 | Paper templates | ICML + ICBINB | ICML + ICBINB (same) |
 | Review format | NeurIPS JSON | NeurIPS JSON (same) |
 | Enhanced review | — | Optional Codex panel (3 personas + synthesis) |
+| Literature databases | Semantic Scholar only | Optional 78+ databases via scientific-skills |
+| Citation verification | None | Optional DOI validation via CrossRef |
 
 ## License
 

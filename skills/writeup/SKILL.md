@@ -186,6 +186,50 @@ Report:
 - Number of citations
 - Number of figures
 
+## Enhanced Writing (Optional — claude-scientific-skills)
+
+**Skip if** claude-scientific-skills plugin is not installed or `scientific_skills.enhanced_writing` is `false` in config.
+
+When the claude-scientific-skills plugin is available, enhance the writing and citation process:
+
+### Enhanced Citation Gathering (augments Step 3)
+
+After the standard S2/WebSearch citation rounds, invoke citation management for validation:
+```
+/citation-management validate <exp_dir>/latex/references.bib
+```
+This verifies all DOIs via CrossRef, detects duplicates, checks for missing required fields, and reports broken references. Fix any issues before compiling.
+
+For additional paper discovery beyond S2:
+```
+/paper-lookup "<query for missing citations>"
+```
+This searches 10 databases (PubMed, arXiv, bioRxiv, OpenAlex, Crossref, Semantic Scholar, CORE, Unpaywall) for papers that S2 may have missed.
+
+### Enhanced Prose Quality (augments Step 5)
+
+When generating the LaTeX paper content, apply `/scientific-writing` principles:
+
+1. **Two-stage writing process**: First outline each section with bullet points (what to cover), then convert each outline into flowing academic prose. Never leave bullet points in the final paper.
+
+2. **IMRAD structure**: Follow standard scientific manuscript structure:
+   - **Introduction**: Motivation → gap → contribution → outline
+   - **Methods**: Reproducible description of approach
+   - **Results**: Data-driven presentation with figure references
+   - **Discussion**: Interpretation → limitations → comparison → future work
+
+3. **Reporting guidelines**: Where applicable, follow established standards:
+   - Machine learning experiments: Report hyperparameters, random seeds, compute budget, dataset splits
+   - Statistical claims: Include effect sizes, confidence intervals, not just p-values
+
+### Enhanced Citation Verification (augments Step 7 reflection)
+
+During each reflection round, also run citation verification:
+```
+/citation-management validate <exp_dir>/latex/references.bib
+```
+Ensure every `\cite{key}` resolves to a real paper with a valid DOI. Remove or replace any citations that fail validation.
+
 ## Writing Guidelines
 
 - Write in formal academic style (third person, passive voice where appropriate)

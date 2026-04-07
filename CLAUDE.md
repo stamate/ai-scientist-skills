@@ -61,6 +61,26 @@ All generated experiment code must:
 4. Set random seeds for reproducibility
 5. Keep execution under 60 minutes
 
+## Scientific Skills Integration (Optional)
+
+When the **claude-scientific-skills** plugin is installed alongside ai-scientist-skills, the pipeline gains:
+
+- **Multi-Database Literature**: `/research-lookup` (Perplexity-powered), `/paper-lookup` (10 databases), `/database-lookup` (78+ databases) during ideation
+- **Enhanced Writing**: `/scientific-writing` (IMRAD prose, two-stage process) + `/citation-management` (DOI verification via CrossRef) during writeup
+- **Publication Figures**: `/scientific-visualization` (journal-specific formatting, colorblind-safe palettes, significance markers) during plot generation
+- **Evidence Assessment**: `/scientific-critical-thinking` (GRADE framework, bias detection, logical fallacy identification) during review
+
+All features are **optional**. Control via config:
+
+```yaml
+scientific_skills:
+  enabled: auto               # auto | true | false
+  enhanced_literature: true
+  enhanced_writing: true
+  enhanced_figures: true
+  enhanced_review: true
+```
+
 ## Codex Integration (Optional)
 
 When the **codex-plugin-cc** plugin is installed alongside ai-scientist-skills, the pipeline gains:

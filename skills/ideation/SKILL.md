@@ -122,6 +122,38 @@ Each idea should:
 - Target **top venue quality** — significant contribution to the field
 - Include **3+ experiments** with measurable outcomes
 
+## Enhanced Literature Search (Optional — claude-scientific-skills)
+
+**Skip if** claude-scientific-skills plugin is not installed or `scientific_skills.enhanced_literature` is `false` in config.
+
+When the claude-scientific-skills plugin is available, augment the basic S2 literature search (step 2b) with multi-database queries for richer evidence:
+
+1. **Real-time research** — after the S2 search, also invoke:
+   ```
+   /research-lookup "<topic keywords and hypothesis>"
+   ```
+   This uses Perplexity-powered academic search for the latest studies, preprints, and trends not yet indexed by S2.
+
+2. **Multi-database paper search** — for broader coverage:
+   ```
+   /paper-lookup "<specific query>"
+   ```
+   This searches 10 databases (PubMed, arXiv, bioRxiv, OpenAlex, Crossref, Semantic Scholar, CORE, Unpaywall) for related work, citation networks, and open-access full text.
+
+3. **Mechanistic evidence** (for biology/chemistry/materials topics) — if the research area involves specific genes, proteins, compounds, or pathways:
+   ```
+   /database-lookup "<entity name>"
+   ```
+   This queries 78+ databases (UniProt, STRING, Reactome, PubChem, ChEMBL, COSMIC, etc.) for mechanistic evidence that can strengthen or challenge the hypothesis.
+
+Use these additional results to:
+- Discover related work that S2 alone might miss (especially preprints and non-English venues)
+- Find mechanistic evidence supporting or contradicting the proposed hypothesis
+- Identify citation networks and key researchers in the area
+- Ground the idea in real biological/chemical/physical data when applicable
+
+The basic S2 search (step 2b) always runs first as the primary source. These enhanced searches add depth, not replace it.
+
 ## Important Notes
 
 - Always perform at least one literature search per idea before finalizing.

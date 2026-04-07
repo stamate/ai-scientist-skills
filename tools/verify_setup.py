@@ -194,6 +194,29 @@ def check_codex() -> bool:
         return False
 
 
+def check_scientific_skills() -> bool:
+    """Check if claude-scientific-skills plugin is installed (optional enhancement)."""
+    plugin_dirs = [
+        Path.home() / ".claude" / "plugins" / "marketplaces" / "k-dense-claude-scientific-skills",
+        Path.home() / ".claude" / "plugins" / "marketplaces" / "claude-scientific-skills",
+        Path.home() / ".claude" / "plugins" / "marketplaces" / "stamate-claude-scientific-skills",
+    ]
+    # Also check the plugin cache directory
+    cache_base = Path.home() / ".claude" / "plugins" / "cache"
+    if cache_base.exists():
+        for d in cache_base.iterdir():
+            if "scientific" in d.name.lower():
+                plugin_dirs.append(d)
+    plugin_found = any(d.exists() for d in plugin_dirs)
+    if plugin_found:
+        print(f"  {CHECK} claude-scientific-skills plugin — enhanced literature, writing, and review available")
+        return True
+    else:
+        print(f"  {WARN} claude-scientific-skills not found — standard pipeline only (optional)")
+        print(f"      Install: claude install gh:stamate/claude-scientific-skills")
+        return False
+
+
 def main():
     print()
     print("AI Scientist Skills — Environment Check")
@@ -238,6 +261,11 @@ def main():
     # Codex (optional enhancement)
     print("\n[Codex Integration (optional)]")
     if not check_codex():
+        warnings += 1
+
+    # Scientific skills (optional enhancement)
+    print("\n[Scientific Skills (optional)]")
+    if not check_scientific_skills():
         warnings += 1
 
     # Summary

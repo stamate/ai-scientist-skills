@@ -112,6 +112,42 @@ List the final figures:
 ls -la <exp_dir>/figures/
 ```
 
+## Enhanced Figures (Optional — claude-scientific-skills)
+
+**Skip if** claude-scientific-skills plugin is not installed or `scientific_skills.enhanced_figures` is `false` in config.
+
+When the claude-scientific-skills plugin is available, apply `/scientific-visualization` principles to the aggregator script for publication-quality output:
+
+1. **Journal-specific formatting**: When the target is known (ICML, NeurIPS, workshop):
+   - ICML/NeurIPS: Single column width 3.25", double column 6.75", min font 6pt at final size
+   - Workshop: Typically single column, more flexible sizing
+   - Use sans-serif fonts (Helvetica/Arial) for figure text
+
+2. **Colorblind-safe palettes**: Use the Okabe-Ito palette or viridis/plasma colormaps:
+   ```python
+   # Okabe-Ito palette (8 colors, universally distinguishable)
+   OKABE_ITO = ['#E69F00', '#56B4E9', '#009E73', '#F0E442', '#0072B2', '#D55E00', '#CC79A7', '#000000']
+   ```
+   Test all figures for grayscale legibility.
+
+3. **Statistical rigor in plots**:
+   - Always show error bars (standard error or 95% CI from multi-seed runs)
+   - Add significance markers where applicable (*, **, ***)
+   - Label sample sizes (n=X) in legends or captions
+   - For bar charts, show individual data points when n < 20
+
+4. **Multi-panel layout**: Use matplotlib `GridSpec` for consistent multi-panel figures:
+   - Label panels (a), (b), (c) in upper-left corners
+   - Share axes where appropriate
+   - Use consistent spacing and alignment
+
+5. **Export settings**:
+   - Vector PDF for all line/bar plots (infinite resolution)
+   - PNG at 600 DPI for scatter/heatmap plots with many points
+   - Ensure no text is clipped with `bbox_inches='tight'`
+
+Apply these principles when generating the aggregator script in Step 4, and verify compliance during the review in Step 5.
+
 ## Figure Guidelines
 
 - **Minimum 4 figures** for a complete paper
