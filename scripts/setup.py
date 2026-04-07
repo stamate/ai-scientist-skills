@@ -92,21 +92,24 @@ def clone_repo(target: Path) -> bool:
 
 def install_python_deps(project_root: Path) -> bool:
     step("Python dependencies")
-    req_file = project_root / "requirements.txt"
 
+    uv = shutil.which("uv")
+    if uv and (project_root / "pyproject.toml").exists():
+        # uv sync creates .venv/ and installs all deps from pyproject.toml
+        result = run([uv, "sync"], cwd=str(project_root))
+        if result.returncode == 0:
+            ok(f"Installed via uv sync (.venv/ created)")
+            return True
+        # Fallback to uv pip install
+        result = run([uv, "pip", "install", "-r", str(project_root / "requirements.txt")])
+        if result.returncode == 0:
+            ok("Installed via uv pip")
+            return True
+
+    req_file = project_root / "requirements.txt"
     if not req_file.exists():
         warn("requirements.txt not found — skipping Python deps")
         return False
-
-    uv = shutil.which("uv")
-    if uv:
-        # Try with active venv first, then --system
-        for extra in [[], ["--system"]]:
-            result = run([uv, "pip", "install", *extra, "-r", str(req_file)])
-            if result.returncode == 0:
-                suffix = " (--system)" if extra else ""
-                ok(f"Installed via uv{suffix}")
-                return True
 
     pip = shutil.which("pip3") or shutil.which("pip")
     if pip:
