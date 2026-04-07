@@ -75,17 +75,25 @@ sudo apt install texlive-full
 
 ### Install
 
-**Option A — Clone and use as project** (recommended for first-time users):
+**Option A — Full install with all enhancements** (recommended):
 ```bash
-git clone https://github.com/x-roocky/ai-scientist-skills.git
+git clone https://github.com/stamate/ai-scientist-skills.git
 cd ai-scientist-skills
 pip install -r requirements.txt
+bash scripts/install-all.sh
+```
+This installs the main plugin plus Codex (panel review, adversarial code review) and scientific skills (78+ databases, IMRAD writing, DOI verification) — one command for everything.
+
+**Option B — Main plugin only** (minimal):
+```bash
+claude install gh:stamate/ai-scientist-skills
 ```
 
-**Option B — Install as Claude Code plugin** (via marketplace):
-```
-/plugin marketplace add x-roocky/ai-scientist-skills
-/plugin install ai-scientist@ai-scientist-skills
+**Option C — Clone without enhancements**:
+```bash
+git clone https://github.com/stamate/ai-scientist-skills.git
+cd ai-scientist-skills
+pip install -r requirements.txt
 ```
 
 ### Verify
