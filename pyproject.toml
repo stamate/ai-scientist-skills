@@ -37,10 +37,13 @@ dependencies = [
     "rich>=13.0",
 ]
 
+[project.scripts]
+ai-scientist-setup = "scripts.setup:main"
+
 [project.urls]
-Homepage = "https://github.com/x-roocky/ai-scientist-skills"
-Repository = "https://github.com/x-roocky/ai-scientist-skills"
-Issues = "https://github.com/x-roocky/ai-scientist-skills/issues"
+Homepage = "https://github.com/stamate/ai-scientist-skills"
+Repository = "https://github.com/stamate/ai-scientist-skills"
+Issues = "https://github.com/stamate/ai-scientist-skills/issues"
 
 [tool.setuptools.packages.find]
 include = ["tools*"]
