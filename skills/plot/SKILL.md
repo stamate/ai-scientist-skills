@@ -119,7 +119,7 @@ ls -la <exp_dir>/figures/
 
 First, check if the claude-scientific-skills plugin is actually installed:
 ```bash
-find "$HOME/.claude/plugins" -maxdepth 8 -name "SKILL.md" -path "*database-lookup*" 2>/dev/null | head -1 | grep -q . && echo "SCIENTIFIC_PLUGIN_OK" || echo "SCIENTIFIC_PLUGIN_MISSING"
+find "$HOME/.claude/plugins" -maxdepth 8 -name "SKILL.md" -path "*research-lookup*" 2>/dev/null | head -1 | grep -q . && echo "SCIENTIFIC_PLUGIN_OK" || echo "SCIENTIFIC_PLUGIN_MISSING"
 ```
 If `SCIENTIFIC_PLUGIN_MISSING`, skip this entire section silently.
 

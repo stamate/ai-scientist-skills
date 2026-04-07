@@ -196,18 +196,20 @@ def check_codex() -> bool:
 
 def check_scientific_skills() -> bool:
     """Check if claude-scientific-skills plugin is installed (optional enhancement)."""
-    plugin_dirs = [
-        Path.home() / ".claude" / "plugins" / "marketplaces" / "k-dense-claude-scientific-skills",
-        Path.home() / ".claude" / "plugins" / "marketplaces" / "claude-scientific-skills",
-        Path.home() / ".claude" / "plugins" / "marketplaces" / "stamate-claude-scientific-skills",
-    ]
-    # Also check the plugin cache directory
-    cache_base = Path.home() / ".claude" / "plugins" / "cache"
-    if cache_base.exists():
-        for d in cache_base.iterdir():
-            if "scientific" in d.name.lower():
-                plugin_dirs.append(d)
-    plugin_found = any(d.exists() for d in plugin_dirs)
+    # Check for key scientific skills (research-lookup, citation-management, scientific-writing)
+    # These may come from claude-scientific-skills or claude-scientific-writer plugins
+    plugins_root = Path.home() / ".claude" / "plugins"
+    plugin_found = False
+    if plugins_root.exists():
+        try:
+            result = subprocess.run(
+                ["find", str(plugins_root), "-maxdepth", "8", "-name", "SKILL.md",
+                 "-path", "*research-lookup*"],
+                capture_output=True, text=True, timeout=10,
+            )
+            plugin_found = bool(result.stdout.strip())
+        except Exception:
+            pass
     if plugin_found:
         print(f"  {CHECK} claude-scientific-skills plugin — enhanced literature, writing, and review available")
         return True

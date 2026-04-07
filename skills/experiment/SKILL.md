@@ -171,7 +171,7 @@ When a stage completes:
 - `codex.stage_gate_review` is `false` in config
 - The Codex CLI is not installed
 
-After completing a stage transition and before starting the next stage, optionally run an adversarial code review on the best node's code to catch subtle issues.
+**Run this BEFORE the stage transition** (step d), not after — because `transition` updates `current_stage` to the next stage. Review the just-completed stage's best code.
 
 1. **Check Codex availability** (respect global config and plugin presence):
    ```bash
@@ -180,10 +180,11 @@ After completing a stage transition and before starting the next stage, optional
    ```
    Both CLI and plugin must be present. Also check the loaded config's `codex.enabled` value. If it is `"false"`, or `--no-codex` was passed, skip this step.
 
-2. **If available**, get the promoted best solution (not workspace/runfile.py, which may be stale):
+2. **If available**, get the promoted best solution from the just-completed stage:
    ```bash
-   python3 tools/state_manager.py save-best <exp_dir> <current_stage>
+   python3 tools/state_manager.py save-best <exp_dir> <completed_stage>
    ```
+   Where `<completed_stage>` is the stage that just finished (e.g., `stage1_initial`), NOT the next stage.
    This writes the best node's code to `<exp_dir>/state/<current_stage>/best_solution_<id>.py`. Use that file path for the review:
    ```
    /codex:rescue --fresh --wait "Adversarial code review of this ML experiment script. Check for: (1) data leakage between train/test splits, (2) incorrect metric computation, (3) device handling errors, (4) numerical instability (NaN/Inf), (5) unreproducible randomness, (6) silent failures in data loading, (7) incorrect loss function usage. Code path: <exp_dir>/state/<current_stage>/best_solution_<id>.py"
