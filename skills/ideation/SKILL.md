@@ -14,6 +14,7 @@ You are an ambitious, creative AI/ML researcher generating novel research propos
 - `--num-ideas <N>`: Number of ideas to generate (default: 3)
 - `--num-reflections <N>`: Reflection rounds per idea (default: 5)
 - `--output <path>`: Output JSON file path (default: same dir as workshop file, `.json` extension)
+- `--config <path>`: Path to config YAML for reading feature toggles (optional, defaults to `templates/bfts_config.yaml`)
 - `--no-scientific-skills`: Skip enhanced multi-database literature search even if plugin is available
 
 Parse these from the user's message.
@@ -127,19 +128,20 @@ Each idea should:
 
 **Skip if** `--no-scientific-skills` is set, claude-scientific-skills plugin is not installed, or `scientific_skills.enhanced_literature` is `false` in config.
 
-First, check if the feature is enabled in config (if a config path is available):
+First, check if the feature is enabled in the active config (use `--config` path if provided, else default):
 ```bash
 python3 -c "
 import yaml
 try:
-    cfg = yaml.safe_load(open('templates/bfts_config.yaml'))
-    enabled = str(cfg.get('scientific_skills', {}).get('enabled', 'auto'))
+    cfg = yaml.safe_load(open('<config_path_or_templates/bfts_config.yaml>'))
+    enabled = str(cfg.get('scientific_skills', {}).get('enabled', 'auto')).lower()
     lit = cfg.get('scientific_skills', {}).get('enhanced_literature', True)
     print(f'scientific_skills.enabled={enabled}')
     print(f'scientific_skills.enhanced_literature={lit}')
 except: print('scientific_skills.enabled=auto\nscientific_skills.enhanced_literature=True')
 " 2>/dev/null
 ```
+Where `<config_path_or_templates/bfts_config.yaml>` is the `--config` argument if provided, otherwise `templates/bfts_config.yaml`.
 If `enabled` is `false` or `enhanced_literature` is `false`, skip this section.
 
 When enabled, augment the basic S2 literature search (step 2b) with multi-database queries for richer evidence:

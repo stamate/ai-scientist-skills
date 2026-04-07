@@ -123,9 +123,9 @@ This will ask the user about their research interests and generate a workshop de
 
 **Skip if** `--idea` is provided.
 
-Invoke the ideation skill. If scientific skills are disabled, pass `--no-scientific-skills`:
+Invoke the ideation skill. Pass the config path so it can read feature toggles, and `--no-scientific-skills` if disabled:
 ```
-/ai-scientist:ideation --workshop <workshop_path> --num-ideas 3
+/ai-scientist:ideation --workshop <workshop_path> --num-ideas 3 --config <config_path>
 ```
 Add `--no-scientific-skills` if `SCIENTIFIC_SKILLS_ENABLED` is false.
 
