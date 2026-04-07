@@ -304,17 +304,47 @@ Examples:
         verify(target)
     else:
         # Plugin install (user or project scope)
-        if project_root:
-            install_python_deps(project_root)
         if not install_all_plugins(scope):
             success = False
         install_codex_cli()
+
+        # Try to install Python deps from the plugin's requirements.txt
+        step("Python dependencies")
+        if project_root:
+            install_python_deps(project_root)
+        else:
+            # Find requirements.txt in the installed plugin directory
+            plugin_req = None
+            for search_root in [Path.home() / ".claude" / "plugins", Path(".claude") / "plugins"]:
+                if not search_root.exists():
+                    continue
+                try:
+                    result = run(["find", str(search_root), "-maxdepth", "6",
+                                  "-name", "requirements.txt", "-path", "*ai-scientist*"])
+                    if result.stdout.strip():
+                        plugin_req = Path(result.stdout.strip().splitlines()[0])
+                        break
+                except Exception:
+                    pass
+            if plugin_req and plugin_req.exists():
+                ok(f"Found {plugin_req}")
+                uv = shutil.which("uv")
+                if uv:
+                    # Try venv install, then system install
+                    for extra in [[], ["--system"]]:
+                        r = run([uv, "pip", "install", *extra, "-r", str(plugin_req)])
+                        if r.returncode == 0:
+                            ok(f"Installed via uv{' (--system)' if extra else ''}")
+                            break
+                    else:
+                        warn(f"Could not install deps. Run manually: uv pip install -r {plugin_req}")
+                else:
+                    warn("uv not found for dep install. Run: pip install -r " + str(plugin_req))
+            else:
+                warn("Could not find requirements.txt in plugin directory")
+                print(f"      Run manually: pip install pyyaml torch numpy matplotlib")
+
         verify(project_root)
-        if not project_root:
-            step("Note")
-            warn("Python dependencies were NOT installed (no local repo found).")
-            print(f"      Skills discover tools/ automatically from the plugin install directory.")
-            print(f"      For Python deps, re-run with --local or: pip install pyyaml torch numpy matplotlib")
 
     if success:
         print(f"\n{BOLD}=== Done ==={RESET}")
