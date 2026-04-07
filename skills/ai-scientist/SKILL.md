@@ -22,6 +22,7 @@ You are the AI Scientist, an autonomous research agent that generates novel rese
 - `--use-codex`: Force enable Codex integration (even if auto-detection fails)
 - `--no-codex`: Force disable Codex integration (even if Codex is installed)
 - `--no-scientific-skills`: Disable claude-scientific-skills integration (even if installed)
+- `--dry-run`: Validate environment and config without running experiments. Reports readiness status and estimated token budget.
 
 Parse from the user's message. If none of `--workshop`, `--idea`, or `--exp-dir` is provided, start with Phase 0.5 (Workshop Creator) to interactively guide the user.
 
@@ -109,6 +110,41 @@ Parse from the user's message. If none of `--workshop`, `--idea`, or `--exp-dir`
    Print result:
    - If `SCIENTIFIC_SKILLS_ENABLED=true`: "Scientific skills detected — enhanced literature, writing, and review enabled"
    - If not found: "claude-scientific-skills not found — using standard pipeline (install for 78+ database access, DOI verification, and IMRAD writing)"
+
+### Dry-Run Check
+
+**Only if** `--dry-run` is set. After Phase 0 completes, perform extended validation and stop:
+
+1. Report all Phase 0 results (environment, device, config, LaTeX, Codex, scientific skills)
+2. If `--workshop` provided, validate the workshop file has required sections (Title, Keywords, TL;DR, Abstract)
+3. If `--idea` provided, validate the idea JSON has required fields per `templates/idea_schema.json`
+4. Test S2 API connectivity:
+   ```bash
+   uv run python3 tools/search.py check
+   ```
+5. Test LaTeX compilation with a minimal document:
+   ```bash
+   uv run python3 tools/latex_compiler.py check
+   ```
+6. Report estimated token budget (if budget_estimator.py exists):
+   ```bash
+   uv run python3 tools/budget_estimator.py --config <config_path> 2>/dev/null || echo "Budget estimator not available"
+   ```
+7. Print summary:
+   ```
+   ═══════════════════════════════════════════════════════
+     AI Scientist Dry Run — Validation Complete
+   ═══════════════════════════════════════════════════════
+     Environment:    ✓ Ready
+     Workshop:       ✓ Valid (or N/A)
+     Config:         ✓ Loaded (<N> stages, <N> max iters)
+     LaTeX:          ✓ Available (or ✗ Missing)
+     S2 API:         ✓ Connected (or ! Fallback to WebSearch)
+     Codex:          ✓ Enabled (or — Disabled)
+     Scientific:     ✓ Enabled (or — Disabled)
+   ═══════════════════════════════════════════════════════
+   ```
+8. **Stop here.** Do not proceed to Phase 0.5 or beyond.
 
 ### Phase 0.5: Workshop Creator
 
