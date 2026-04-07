@@ -23,6 +23,7 @@ You are the AI Scientist, an autonomous research agent that generates novel rese
 - `--no-codex`: Force disable Codex integration (even if Codex is installed)
 - `--no-scientific-skills`: Disable claude-scientific-skills integration (even if installed)
 - `--dry-run`: Validate environment and config without running experiments. Reports readiness status and estimated token budget.
+- `--revision-passes <N>`: Number of review-revise cycles (overrides config max_passes, 0 = no revision)
 
 Parse from the user's message. If none of `--workshop`, `--idea`, or `--exp-dir` is provided, start with Phase 0.5 (Workshop Creator) to interactively guide the user.
 
@@ -248,6 +249,52 @@ Also forward `--no-scientific-skills` if `SCIENTIFIC_SKILLS_ENABLED` is false, t
 
 The `/ai-scientist:codex-review` skill exists for standalone use when the user wants Codex-only review without the Claude review.
 
+### Phase 6.5: Revision Loop (Optional)
+
+**Skip if** `revision.enabled` is `false` in config AND `--revision-passes` is not set or is 0.
+
+If `--revision-passes <N>` is provided, use that as max passes (overrides config). Otherwise use `revision.max_passes` from config.
+
+For each revision pass (up to max_passes):
+
+1. **Check score**: Read the review from `<exp_dir>/review.json`. Extract the `Overall` score (1-10).
+   - If `Overall >= revision.score_threshold`: print "Review score <score>/10 meets threshold (<threshold>). No revision needed." and **break the loop**.
+
+2. **Prompt user** (if `revision.prompt_before_revision` is `true`):
+   Ask the user:
+   > "Review score is <score>/10 (threshold: <threshold>). Revision pass <N>/<max>. Options:"
+   > 1. "Revise and re-review (recommended)"
+   > 2. "Accept current paper and stop"
+
+   If user chooses to stop, break the loop.
+
+3. **Extract actionable feedback**: From the review JSON, collect:
+   - All items in `Weaknesses` array
+   - All items in `Questions` array
+   - If Codex review exists (`codex_review.md`), extract its weaknesses too
+   - If evidence assessment exists (`evidence_assessment.md`), extract concerns
+
+4. **Map feedback to phases**: Categorize each weakness:
+   - "missing baselines", "insufficient experiments", "more datasets" -> re-run relevant experiment stage
+   - "unclear writing", "poor organization", "grammar" -> re-run writeup
+   - "missing citations", "uncited claims" -> re-run citation gathering in writeup
+   - "figure quality", "unclear plots" -> re-run plot aggregation
+   - Everything else -> re-run writeup (default)
+
+5. **Re-run affected phases**:
+   - If experiments need re-running: invoke `/ai-scientist:experiment --exp-dir <exp_dir> --start-stage <relevant_stage>`
+   - If plots need re-running: invoke `/ai-scientist:plot --exp-dir <exp_dir>`
+   - If writeup needs re-running: invoke `/ai-scientist:writeup --exp-dir <exp_dir> --type <type>` with the review feedback injected into the task context
+   - Always re-run writeup after any experiment/plot changes
+
+6. **Re-review**: invoke `/ai-scientist:review --pdf <exp_dir>/paper.pdf --exp-dir <exp_dir>`
+   - Save as `review_pass<N>.json` to preserve history
+   - Copy to `review.json` for next iteration check
+
+7. **Report revision**: "Revision pass <N> complete. New score: <new_score>/10 (was: <old_score>/10)"
+
+After all passes complete (or threshold met), proceed to Phase 7.
+
 ### Phase 7: Summary Report
 
 After all phases complete, provide a summary:
@@ -277,6 +324,7 @@ After all phases complete, provide a summary:
   Codex Review: <exp_dir>/codex_review.md (if Codex available)
     Panel:       <recommendation> (Empiricist/Theorist/Practitioner consensus)
     Alignment:   <aligned/minor-discrepancies/major-discrepancies>
+  Revisions:   <N> pass(es) (score: <initial> -> <final>)
 
 ═══════════════════════════════════════════════════════
 ```

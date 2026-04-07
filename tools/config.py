@@ -80,6 +80,14 @@ class CodexConfig:
 
 
 @dataclass
+class RevisionConfig:
+    enabled: bool = False
+    score_threshold: int = 5       # re-run if Overall < this
+    max_passes: int = 2            # max revision cycles
+    prompt_before_revision: bool = True  # ask user before each revision
+
+
+@dataclass
 class Config:
     """Top-level configuration for an AI Scientist experiment run."""
 
@@ -126,6 +134,9 @@ class Config:
 
     # Scientific skills integration (optional)
     scientific_skills: ScientificSkillsConfig = field(default_factory=ScientificSkillsConfig)
+
+    # Revision loop
+    revision: RevisionConfig = field(default_factory=RevisionConfig)
 
 
 # ── Default config path ──────────────────────────────────────────────────────

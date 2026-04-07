@@ -110,6 +110,14 @@ codex:
   venue: auto             # auto | neurips | icml | iclr | workshop
 ```
 
+```yaml
+revision:
+  enabled: false
+  score_threshold: 5
+  max_passes: 2
+  prompt_before_revision: true
+```
+
 ## Pre-commit Validation
 
 Run before committing to catch common issues:

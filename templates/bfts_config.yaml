@@ -82,3 +82,10 @@ codex:
   code_alignment: true       # code-methods alignment check (paper vs code)
   rescue_on_stuck: true      # delegate to Codex when experiments are stuck
   venue: auto                # auto (from writeup_type) | neurips | icml | iclr | workshop
+
+# ── Revision loop (optional — re-review after poor scores) ─────────────────
+revision:
+  enabled: false               # opt-in: write -> review -> revise -> re-review
+  score_threshold: 5           # re-run if Overall score < this (1-10 scale)
+  max_passes: 2                # max revision cycles (prevent infinite loops)
+  prompt_before_revision: true # ask user before each revision pass
