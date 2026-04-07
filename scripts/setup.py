@@ -124,31 +124,49 @@ def install_python_deps(project_root: Path) -> bool:
 # ── Claude plugins ─────────────────────────────────────────────────────────────
 
 
-def install_claude_plugin(name: str, repo: str, scope: str = "user") -> bool:
+def add_marketplace(repo: str, scope: str = "user") -> bool:
+    """Register a GitHub repo as a Claude Code marketplace."""
     claude = shutil.which("claude")
     if not claude:
-        fail(f"Claude Code CLI not found — cannot install {name}")
+        return False
+    result = run([claude, "plugin", "marketplace", "add", repo, "--scope", scope])
+    return result.returncode == 0 or "already" in (result.stdout + result.stderr).lower()
+
+
+def install_claude_plugin(marketplace: str, plugin: str, repo: str, scope: str = "user") -> bool:
+    claude = shutil.which("claude")
+    if not claude:
+        fail(f"Claude Code CLI not found — cannot install {plugin}")
         return False
 
-    result = run([claude, "plugin", "install", f"gh:{repo}", "--scope", scope])
+    # Step 1: Add the marketplace (repo) if not already registered
+    add_marketplace(repo, scope)
+
+    # Step 2: Install the plugin from that marketplace
+    plugin_ref = f"{plugin}@{marketplace}"
+    result = run([claude, "plugin", "install", plugin_ref, "--scope", scope])
     out = result.stdout + result.stderr
     if result.returncode == 0 or "already" in out.lower():
-        ok(f"{name} (scope: {scope})")
+        ok(f"{plugin_ref} (scope: {scope})")
         return True
 
-    fail(f"{name} — {out.strip()[:200]}")
+    fail(f"{plugin_ref} — {out.strip()[:200]}")
     return False
 
 
-def install_all_plugins(scope: str = "user") -> None:
+def install_all_plugins(scope: str = "user") -> bool:
+    # (marketplace_name, plugin_name, github_repo)
     plugins = [
-        ("ai-scientist-skills", "stamate/ai-scientist-skills"),
-        ("codex-plugin-cc", "stamate/codex-plugin-cc"),
-        ("claude-scientific-skills", "stamate/claude-scientific-skills"),
+        ("ai-scientist-skills", "ai-scientist", "stamate/ai-scientist-skills"),
+        ("stamate-codex", "codex", "stamate/codex-plugin-cc"),
+        ("claude-scientific-skills", "scientific-skills", "stamate/claude-scientific-skills"),
     ]
     step(f"Claude Code plugins ({len(plugins)}, scope: {scope})")
-    for name, repo in plugins:
-        install_claude_plugin(name, repo, scope)
+    all_ok = True
+    for marketplace, plugin, repo in plugins:
+        if not install_claude_plugin(marketplace, plugin, repo, scope):
+            all_ok = False
+    return all_ok
 
 
 # ── Codex CLI ──────────────────────────────────────────────────────────────────
@@ -266,6 +284,8 @@ Examples:
     else:
         scope = "user"
 
+    success = True
+
     if args.local:
         # Clone + project-scoped install
         target = Path.cwd() / "ai-scientist-skills"
@@ -278,16 +298,25 @@ Examples:
         # cd into the clone so project-scoped plugins install into clone/.claude/plugins/
         os.chdir(target)
         install_python_deps(target)
-        install_all_plugins(scope)
+        if not install_all_plugins(scope):
+            success = False
         install_codex_cli()
         verify(target)
     else:
         # Plugin install (user or project scope)
-        install_all_plugins(scope)
+        if not install_all_plugins(scope):
+            success = False
         install_codex_cli()
         verify(project_root)
+        if not project_root:
+            step("Note")
+            warn("Plugins installed, but skills need the repo's tools/ and templates/ at runtime.")
+            print(f"      To get them, re-run with --local or clone the repo separately.")
 
-    print(f"\n{BOLD}=== Done ==={RESET}")
+    if success:
+        print(f"\n{BOLD}=== Done ==={RESET}")
+    else:
+        print(f"\n{BOLD}=== Done (with errors) ==={RESET}")
     scope_note = "project (.claude/plugins/)" if scope == "project" else "global (~/.claude/plugins/)"
     print(f"  Scope: {scope_note}")
     if args.local or project_root:
@@ -300,6 +329,9 @@ Examples:
         print(f"\n  Plugins installed globally. To also clone the repo:")
         print(f"    uv run {url} --local")
     print()
+
+    if not success:
+        sys.exit(1)
 
 
 if __name__ == "__main__":

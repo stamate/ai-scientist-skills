@@ -95,7 +95,8 @@ Clones repo + Python deps + project-scoped plugins. Everything contained in one 
 
 **Option D — Minimal**:
 ```bash
-claude plugin install gh:stamate/ai-scientist-skills
+claude plugin marketplace add stamate/ai-scientist-skills
+claude plugin install ai-scientist@ai-scientist-skills
 ```
 
 ### Verify
