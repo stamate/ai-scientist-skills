@@ -136,9 +136,8 @@ def install_claude_plugin(name: str, repo: str, scope: str = "user") -> bool:
         ok(f"{name} (scope: {scope})")
         return True
 
-    # install may have succeeded with non-zero exit in some versions
-    ok(f"{name} (attempted, scope: {scope})")
-    return True
+    fail(f"{name} — {out.strip()[:200]}")
+    return False
 
 
 def install_all_plugins(scope: str = "user") -> None:
@@ -276,6 +275,8 @@ Examples:
         else:
             if not clone_repo(target):
                 sys.exit(1)
+        # cd into the clone so project-scoped plugins install into clone/.claude/plugins/
+        os.chdir(target)
         install_python_deps(target)
         install_all_plugins(scope)
         install_codex_cli()

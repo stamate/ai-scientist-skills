@@ -176,7 +176,7 @@ When a stage completes:
 1. **Check Codex availability** (respect global config and plugin presence):
    ```bash
    which codex 2>/dev/null && echo "CLI_OK" || echo "CLI_MISSING"
-   test -d "$HOME/.claude/plugins/marketplaces/stamate-codex" -o -d "$HOME/.claude/plugins/marketplaces/codex-plugin-cc" && echo "PLUGIN_OK" || echo "PLUGIN_MISSING"
+   (find "$HOME/.claude/plugins" ".claude/plugins" -maxdepth 5 -path "*stamate-codex*" -o -path "*codex-plugin-cc*" 2>/dev/null | head -1 | grep -q .) && echo "PLUGIN_OK" || echo "PLUGIN_MISSING"
    ```
    Both CLI and plugin must be present. Also check the loaded config's `codex.enabled` value. If it is `"false"`, or `--no-codex` was passed, skip this step.
 

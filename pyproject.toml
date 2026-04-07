@@ -37,9 +37,6 @@ dependencies = [
     "rich>=13.0",
 ]
 
-[project.scripts]
-ai-scientist-setup = "scripts.setup:main"
-
 [project.urls]
 Homepage = "https://github.com/stamate/ai-scientist-skills"
 Repository = "https://github.com/stamate/ai-scientist-skills"

@@ -177,7 +177,7 @@ Present a concise summary:
 
 First, check if the claude-scientific-skills plugin is actually installed:
 ```bash
-find "$HOME/.claude/plugins" -maxdepth 8 -name "SKILL.md" -path "*research-lookup*" 2>/dev/null | head -1 | grep -q . && echo "SCIENTIFIC_PLUGIN_OK" || echo "SCIENTIFIC_PLUGIN_MISSING"
+find "$HOME/.claude/plugins" ".claude/plugins" -maxdepth 8 -name "SKILL.md" -path "*research-lookup*" 2>/dev/null | head -1 | grep -q . && echo "SCIENTIFIC_PLUGIN_OK" || echo "SCIENTIFIC_PLUGIN_MISSING"
 ```
 If `SCIENTIFIC_PLUGIN_MISSING`, skip this entire step silently.
 
@@ -229,7 +229,7 @@ This assessment adds scientific rigor to the review without changing the NeurIPS
 Check Codex availability (CLI + plugin + config):
 ```bash
 which codex 2>/dev/null && echo "CLI_OK" || echo "CLI_MISSING"
-test -d "$HOME/.claude/plugins/marketplaces/stamate-codex" -o -d "$HOME/.claude/plugins/marketplaces/codex-plugin-cc" && echo "PLUGIN_OK" || echo "PLUGIN_MISSING"
+(find "$HOME/.claude/plugins" ".claude/plugins" -maxdepth 5 -path "*stamate-codex*" -o -path "*codex-plugin-cc*" 2>/dev/null | head -1 | grep -q .) && echo "PLUGIN_OK" || echo "PLUGIN_MISSING"
 ```
 Both must be present. If either is missing, skip this step silently.
 

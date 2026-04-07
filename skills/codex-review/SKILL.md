@@ -41,7 +41,7 @@ which codex 2>/dev/null && echo "CLI_OK" || echo "CLI_MISSING"
 
 Also verify the Claude Code plugin is registered and Codex is authenticated:
 ```bash
-test -d "$HOME/.claude/plugins/marketplaces/stamate-codex" -o -d "$HOME/.claude/plugins/marketplaces/codex-plugin-cc" && echo "PLUGIN_OK" || echo "PLUGIN_MISSING"
+(find "$HOME/.claude/plugins" ".claude/plugins" -maxdepth 5 -path "*stamate-codex*" -o -path "*codex-plugin-cc*" 2>/dev/null | head -1 | grep -q .) && echo "PLUGIN_OK" || echo "PLUGIN_MISSING"
 codex login status 2>/dev/null && echo "AUTH_OK" || echo "AUTH_MISSING"
 ```
 

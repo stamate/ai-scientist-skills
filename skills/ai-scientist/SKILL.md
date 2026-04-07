@@ -70,7 +70,8 @@ Parse from the user's message. If none of `--workshop`, `--idea`, or `--exp-dir`
    Check four conditions — CLI binary, Claude Code plugin, authentication, and config toggle:
    ```bash
    which codex 2>/dev/null && echo "CLI_OK" || echo "CLI_MISSING"
-   test -d "$HOME/.claude/plugins/marketplaces/stamate-codex" -o -d "$HOME/.claude/plugins/marketplaces/codex-plugin-cc" && echo "PLUGIN_OK" || echo "PLUGIN_MISSING"
+   # Check both global (~/.claude/plugins/) and project-local (.claude/plugins/) paths
+   (find "$HOME/.claude/plugins" ".claude/plugins" -maxdepth 5 -path "*stamate-codex*" -o -path "*codex-plugin-cc*" 2>/dev/null | head -1 | grep -q .) && echo "PLUGIN_OK" || echo "PLUGIN_MISSING"
    codex login status 2>/dev/null && echo "AUTH_OK" || echo "AUTH_MISSING"
    ```
    Also read the `codex.enabled` value from the loaded config (step 3 above).
@@ -93,8 +94,8 @@ Parse from the user's message. If none of `--workshop`, `--idea`, or `--exp-dir`
 
    Check if the claude-scientific-skills plugin is installed:
    ```bash
-   # Check for the specific claude-scientific-skills plugin (not any plugin with "scientific" in path)
-   find "$HOME/.claude/plugins" -maxdepth 8 -name "SKILL.md" -path "*research-lookup*" 2>/dev/null | head -1 | grep -q . && echo "SCIENTIFIC_SKILLS_OK" || echo "SCIENTIFIC_SKILLS_MISSING"
+   # Check both global and project-local plugin paths for the research-lookup skill
+   find "$HOME/.claude/plugins" ".claude/plugins" -maxdepth 8 -name "SKILL.md" -path "*research-lookup*" 2>/dev/null | head -1 | grep -q . && echo "SCIENTIFIC_SKILLS_OK" || echo "SCIENTIFIC_SKILLS_MISSING"
    ```
    This checks for the `/research-lookup` skill which is present in claude-scientific-skills and claude-scientific-writer plugins.
    Also read the `scientific_skills.enabled` value from the loaded config (step 3).
