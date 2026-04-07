@@ -96,13 +96,13 @@ def install_python_deps(project_root: Path) -> bool:
     uv = shutil.which("uv")
     if uv and (project_root / "pyproject.toml").exists():
         # uv sync creates .venv/ and installs all deps from pyproject.toml
-        rc = run_live([uv, "sync"], cwd=str(project_root))
+        # Note: caller should os.chdir() to project_root before calling this
+        rc = run_live([uv, "sync", "--project", str(project_root)])
         if rc == 0:
-            ok(f"Installed via uv sync (.venv/ created)")
+            ok(f"Installed via uv sync (.venv/ created at {project_root / '.venv'})")
             return True
         # Fallback to uv pip install
-        rc = run_live([uv, "pip", "install", "-r", str(project_root / "requirements.txt")],
-                      cwd=str(project_root))
+        rc = run_live([uv, "pip", "install", "-r", str(project_root / "requirements.txt")])
         if rc == 0:
             ok("Installed via uv pip")
             return True
