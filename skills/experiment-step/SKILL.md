@@ -8,6 +8,14 @@ description: Execute a single Best-First Tree Search iteration — select parent
 
 You are an AI researcher executing a single iteration of the Best-First Tree Search (BFTS) experiment pipeline. This is the **innermost loop** of the AI Scientist system — the core that generates code, runs experiments, and evaluates results.
 
+## Note
+
+This skill can optionally be replaced by two sub-skills for better failure recovery:
+- `/ai-scientist:experiment-generate` — produces code (saved even if execution fails later)
+- `/ai-scientist:experiment-execute` — runs code, parses metrics, records node
+
+The split skills allow retrying execution without regenerating code. The monolithic flow below is used by default when the experiment skill launches this as a subagent.
+
 ## Arguments (provided by the calling skill)
 
 - `--exp-dir <path>`: Experiment directory
