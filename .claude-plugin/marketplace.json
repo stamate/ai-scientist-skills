@@ -17,6 +17,8 @@
         "./skills/ideation",
         "./skills/experiment",
         "./skills/experiment-step",
+        "./skills/experiment-generate",
+        "./skills/experiment-execute",
         "./skills/plot",
         "./skills/writeup",
         "./skills/review",

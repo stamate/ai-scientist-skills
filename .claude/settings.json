@@ -16,6 +16,14 @@
       "type": "prompt",
       "path": "skills/experiment-step/SKILL.md"
     },
+    "ai-scientist:experiment-generate": {
+      "type": "prompt",
+      "path": "skills/experiment-generate/SKILL.md"
+    },
+    "ai-scientist:experiment-execute": {
+      "type": "prompt",
+      "path": "skills/experiment-execute/SKILL.md"
+    },
     "ai-scientist:plot": {
       "type": "prompt",
       "path": "skills/plot/SKILL.md"
