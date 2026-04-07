@@ -129,11 +129,10 @@ When a stage completes, run the best node's code with multiple random seeds to v
    uv run python3 tools/state_manager.py best-node <exp_dir> <stage> --show-code
    ```
 
-2. Run it with different seeds (42, 123, 456), modifying the seed line each time:
+2. Run it with different seeds (42, 123, 456) via the SEED env var:
    ```bash
    for seed in 42 123 456; do
-       sed "s/torch.manual_seed(42)/torch.manual_seed($seed)/" <exp_dir>/workspace/runfile.py > <exp_dir>/workspace/runfile_seed_$seed.py
-       cd <exp_dir>/workspace && timeout 3600 uv run python3 runfile_seed_$seed.py 2>&1 | tee <exp_dir>/logs/seed_${seed}_output.txt
+       cd <exp_dir>/workspace && SEED=$seed timeout 3600 uv run python3 runfile.py 2>&1 | tee <exp_dir>/logs/seed_${seed}_output.txt
    done
    ```
 

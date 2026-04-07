@@ -80,7 +80,7 @@ The generated code MUST:
 3. Save plots to `figures/` directory relative to the workspace
 4. Handle errors gracefully (try/except around training)
 5. Use `torch.no_grad()` for evaluation
-6. Set random seeds for reproducibility
+6. Set random seeds for reproducibility — the device preamble reads `SEED` from the environment (defaulting to 42), so no hardcoded seed values are needed in generated code
 7. Print dataset names when loaded: `Dataset: <name>`
 8. Keep execution time under 60 minutes
 
