@@ -93,8 +93,8 @@ Parse from the user's message. If none of `--workshop`, `--idea`, or `--exp-dir`
 
    Check if the claude-scientific-skills plugin is installed:
    ```bash
-   # Check common marketplace and cache directories
-   find "$HOME/.claude/plugins" -maxdepth 4 -name "SKILL.md" -path "*scientific*" 2>/dev/null | head -1 | grep -q . && echo "SCIENTIFIC_SKILLS_OK" || echo "SCIENTIFIC_SKILLS_MISSING"
+   # Check marketplace and cache directories (cache can be deeply nested)
+   find "$HOME/.claude/plugins" -maxdepth 8 -name "SKILL.md" -path "*scientific*" 2>/dev/null | head -1 | grep -q . && echo "SCIENTIFIC_SKILLS_OK" || echo "SCIENTIFIC_SKILLS_MISSING"
    ```
    Also read the `scientific_skills.enabled` value from the loaded config (step 3).
 
@@ -123,10 +123,11 @@ This will ask the user about their research interests and generate a workshop de
 
 **Skip if** `--idea` is provided.
 
-Invoke the ideation skill:
+Invoke the ideation skill. If scientific skills are disabled, pass `--no-scientific-skills`:
 ```
 /ai-scientist:ideation --workshop <workshop_path> --num-ideas 3
 ```
+Add `--no-scientific-skills` if `SCIENTIFIC_SKILLS_ENABLED` is false.
 
 This generates a JSON file with research ideas.
 
@@ -168,10 +169,11 @@ This runs the 4-stage BFTS pipeline and produces experiment results.
 
 ### Phase 4: Plot Aggregation
 
-Invoke the plot skill:
+Invoke the plot skill. If scientific skills are disabled, pass `--no-scientific-skills`:
 ```
 /ai-scientist:plot --exp-dir <exp_dir>
 ```
+Add `--no-scientific-skills` if `SCIENTIFIC_SKILLS_ENABLED` is false.
 
 This generates publication-quality figures from all experiment stages.
 
@@ -179,10 +181,11 @@ This generates publication-quality figures from all experiment stages.
 
 **Skip if** `--skip-writeup` is set.
 
-Invoke the writeup skill:
+Invoke the writeup skill. If scientific skills are disabled, pass `--no-scientific-skills`:
 ```
 /ai-scientist:writeup --exp-dir <exp_dir> --type <icbinb|icml>
 ```
+Add `--no-scientific-skills` if `SCIENTIFIC_SKILLS_ENABLED` is false.
 
 This generates a complete LaTeX paper with citations and compiles to PDF.
 

@@ -14,6 +14,7 @@ You are writing a complete research paper based on experiment results.
 - `--type <icbinb|icml>`: Paper template type — icbinb (4-page workshop) or icml (8-page, default: icbinb)
 - `--cite-rounds <N>`: Number of citation gathering rounds (default: 5)
 - `--reflections <N>`: Number of writeup reflection rounds (default: 3)
+- `--no-scientific-skills`: Skip enhanced writing and citation verification even if plugin is available
 
 Parse from the user's message.
 
@@ -188,7 +189,7 @@ Report:
 
 ## Enhanced Writing (Optional — claude-scientific-skills)
 
-**Skip if** claude-scientific-skills plugin is not installed or `scientific_skills.enhanced_writing` is `false` in config.
+**Skip if** `--no-scientific-skills` is set, claude-scientific-skills plugin is not installed, or `scientific_skills.enhanced_writing` is `false` in config.
 
 When the claude-scientific-skills plugin is available, enhance the writing and citation process:
 

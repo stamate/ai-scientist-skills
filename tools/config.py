@@ -60,6 +60,10 @@ class ScientificSkillsConfig:
     enhanced_figures: bool = True      # /scientific-visualization in plot phase
     enhanced_review: bool = True       # /scientific-critical-thinking in review
 
+    def __post_init__(self):
+        # Normalize enabled to string (YAML may parse true/false as bool)
+        self.enabled = str(self.enabled).lower()
+
 
 @dataclass
 class CodexConfig:
@@ -69,6 +73,10 @@ class CodexConfig:
     code_alignment: bool = True
     rescue_on_stuck: bool = True
     venue: str = "auto"  # "auto" | "neurips" | "icml" | "iclr" | "workshop"
+
+    def __post_init__(self):
+        # Normalize enabled to string (YAML may parse true/false as bool)
+        self.enabled = str(self.enabled).lower()
 
 
 @dataclass

@@ -11,6 +11,7 @@ You are generating publication-quality figures for an AI research paper.
 ## Arguments
 
 - `--exp-dir <path>`: Experiment directory (required)
+- `--no-scientific-skills`: Skip enhanced figure formatting even if plugin is available
 
 Parse from the user's message.
 
@@ -114,7 +115,7 @@ ls -la <exp_dir>/figures/
 
 ## Enhanced Figures (Optional — claude-scientific-skills)
 
-**Skip if** claude-scientific-skills plugin is not installed or `scientific_skills.enhanced_figures` is `false` in config.
+**Skip if** `--no-scientific-skills` is set, claude-scientific-skills plugin is not installed, or `scientific_skills.enhanced_figures` is `false` in config.
 
 When the claude-scientific-skills plugin is available, apply `/scientific-visualization` principles to the aggregator script for publication-quality output:
 
