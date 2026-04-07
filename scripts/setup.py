@@ -8,10 +8,16 @@ AI Scientist Skills — One-command setup. Run directly from GitHub:
   uv run https://raw.githubusercontent.com/stamate/ai-scientist-skills/main/scripts/setup.py
 
 Modes:
-  --global   Install Claude plugins only (default when run from URL)
-  --local    Clone repo into current directory + install plugins + Python deps
+  (default)  Install plugins globally (--scope user)
+  --project  Install plugins into current project (--scope project)
+  --local    Clone repo here + install plugins at project scope + Python deps
   --check    Verify installation status
   --deps     Python dependencies only (requires local repo)
+
+Plugin scopes (from `claude plugin install --scope`):
+  user     ~/.claude/plugins/ — available in all projects (default)
+  project  .claude/plugins/   — available only in this project
+  local    .claude/plugins/   — available only on this machine for this project
 """
 from __future__ import annotations
 
@@ -118,32 +124,32 @@ def install_python_deps(project_root: Path) -> bool:
 # ── Claude plugins ─────────────────────────────────────────────────────────────
 
 
-def install_claude_plugin(name: str, repo: str) -> bool:
+def install_claude_plugin(name: str, repo: str, scope: str = "user") -> bool:
     claude = shutil.which("claude")
     if not claude:
         fail(f"Claude Code CLI not found — cannot install {name}")
         return False
 
-    result = run([claude, "install", f"gh:{repo}"])
+    result = run([claude, "plugin", "install", f"gh:{repo}", "--scope", scope])
     out = result.stdout + result.stderr
     if result.returncode == 0 or "already" in out.lower():
-        ok(name)
+        ok(f"{name} (scope: {scope})")
         return True
 
     # install may have succeeded with non-zero exit in some versions
-    ok(f"{name} (attempted)")
+    ok(f"{name} (attempted, scope: {scope})")
     return True
 
 
-def install_all_plugins() -> None:
+def install_all_plugins(scope: str = "user") -> None:
     plugins = [
         ("ai-scientist-skills", "stamate/ai-scientist-skills"),
         ("codex-plugin-cc", "stamate/codex-plugin-cc"),
         ("claude-scientific-skills", "stamate/claude-scientific-skills"),
     ]
-    step(f"Claude Code plugins ({len(plugins)})")
+    step(f"Claude Code plugins ({len(plugins)}, scope: {scope})")
     for name, repo in plugins:
-        install_claude_plugin(name, repo)
+        install_claude_plugin(name, repo, scope)
 
 
 # ── Codex CLI ──────────────────────────────────────────────────────────────────
@@ -208,29 +214,33 @@ def detect_project_root() -> Path | None:
 def main():
     import argparse
 
+    url = f"https://raw.githubusercontent.com/{REPO}/main/scripts/setup.py"
     parser = argparse.ArgumentParser(
         description="AI Scientist Skills — one-command setup",
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="""
+        epilog=f"""
 Examples:
-  # Install from anywhere (no clone needed):
-  uv run https://raw.githubusercontent.com/stamate/ai-scientist-skills/main/scripts/setup.py
+  # Install plugins globally (available everywhere):
+  uv run {url}
 
-  # Clone + full install into current directory:
-  uv run https://raw.githubusercontent.com/stamate/ai-scientist-skills/main/scripts/setup.py --local
+  # Install plugins into current project only:
+  uv run {url} --project
+
+  # Clone repo + project-scoped install + Python deps:
+  uv run {url} --local
 
   # Just check what's installed:
-  uv run https://raw.githubusercontent.com/stamate/ai-scientist-skills/main/scripts/setup.py --check
+  uv run {url} --check
 """,
     )
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument(
-        "--global", dest="global_mode", action="store_true",
-        help="Install Claude plugins + Codex CLI only (default)",
+        "--local", action="store_true",
+        help="Clone repo here + install plugins at project scope + Python deps",
     )
     mode.add_argument(
-        "--local", action="store_true",
-        help="Clone repo into ./ai-scientist-skills + install everything",
+        "--project", action="store_true",
+        help="Install plugins at project scope (.claude/plugins/ in cwd)",
     )
     mode.add_argument("--deps", action="store_true", help="Python deps only (needs local repo)")
     mode.add_argument("--check", action="store_true", help="Verify installation")
@@ -251,8 +261,14 @@ Examples:
         install_python_deps(project_root)
         return
 
+    # Determine scope
+    if args.local or args.project:
+        scope = "project"
+    else:
+        scope = "user"
+
     if args.local:
-        # Clone + full install
+        # Clone + project-scoped install
         target = Path.cwd() / "ai-scientist-skills"
         if project_root:
             print(f"  Already in repo at {project_root}")
@@ -261,24 +277,26 @@ Examples:
             if not clone_repo(target):
                 sys.exit(1)
         install_python_deps(target)
-        install_all_plugins()
+        install_all_plugins(scope)
         install_codex_cli()
         verify(target)
     else:
-        # Global: plugins only (default)
-        install_all_plugins()
+        # Plugin install (user or project scope)
+        install_all_plugins(scope)
         install_codex_cli()
         verify(project_root)
 
     print(f"\n{BOLD}=== Done ==={RESET}")
+    scope_note = "project (.claude/plugins/)" if scope == "project" else "global (~/.claude/plugins/)"
+    print(f"  Scope: {scope_note}")
     if args.local or project_root:
         root = project_root or Path.cwd() / "ai-scientist-skills"
         print(f"\n  Quick start:")
         print(f"    cd {root}")
         print(f"    claude '/ai-scientist --workshop examples/ideas/i_cant_believe_its_not_better.md'")
     else:
-        print(f"\n  Plugins installed. To also get the repo:")
-        print(f"    uv run https://raw.githubusercontent.com/{REPO}/main/scripts/setup.py --local")
+        print(f"\n  Plugins installed globally. To also clone the repo:")
+        print(f"    uv run {url} --local")
     print()
 
 
