@@ -4,6 +4,7 @@ File-based approach suitable for Claude Code skills that run across
 multiple invocations.
 """
 
+import hashlib
 import json
 import os
 import shutil
@@ -580,6 +581,50 @@ def save_best_solution(exp_dir: str, stage: str, journal: Dict) -> Optional[str]
     return str(filepath)
 
 
+def save_structured_log(exp_dir: str, stage: str, node: dict) -> str:
+    """Save a structured JSON log for a single experiment node."""
+    log_dir = Path(exp_dir) / "logs" / "structured"
+    log_dir.mkdir(parents=True, exist_ok=True)
+    log_file = log_dir / f"{stage}_step{node.get('step', 0)}_{node['id'][:8]}.json"
+
+    log_entry = {
+        "node_id": node["id"],
+        "stage": stage,
+        "step": node.get("step", 0),
+        "timestamp": node.get("created_at", ""),
+        "parent_id": node.get("parent_id"),
+        "is_buggy": node.get("is_buggy", False),
+        "exec_time": node.get("exec_time", 0),
+        "metric": node.get("metric"),
+        "datasets": node.get("datasets_successfully_tested", []),
+        "error": {
+            "type": node.get("exc_type", ""),
+            "message": node.get("exc_info", ""),
+        } if node.get("is_buggy") else None,
+        "plan": node.get("plan", ""),
+        "plots": node.get("plot_paths", []),
+    }
+
+    with open(log_file, "w") as f:
+        json.dump(log_entry, f, indent=2)
+    return str(log_file)
+
+
+def get_code_hash(code: str) -> str:
+    """Return SHA-256 hash of code content (whitespace-normalized)."""
+    normalized = "\n".join(line.rstrip() for line in code.strip().splitlines())
+    return hashlib.sha256(normalized.encode()).hexdigest()[:16]
+
+
+def find_duplicate_node(journal: dict, code: str) -> Optional[dict]:
+    """Check if identical code was already executed in this stage."""
+    target_hash = get_code_hash(code)
+    for node in journal["nodes"]:
+        if get_code_hash(node.get("code", "")) == target_hash:
+            return node
+    return None
+
+
 # ── CLI ──────────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
@@ -676,6 +721,12 @@ examples:
     brief_p.add_argument("exp_dir", help="Experiment directory")
     brief_p.add_argument("stage", help="Stage name")
 
+    # dedup-check — check if code already executed in stage
+    dedup_p = sub.add_parser("dedup-check", help="Check if code already executed in stage")
+    dedup_p.add_argument("exp_dir")
+    dedup_p.add_argument("stage")
+    dedup_p.add_argument("--code", required=True, help="Path to code file")
+
     # test
     sub.add_parser("test", help="Run self-test")
 
@@ -757,6 +808,7 @@ examples:
 
         add_node(journal, node)
         save_journal(args.exp_dir, args.stage, journal)
+        save_structured_log(args.exp_dir, args.stage, node)
         print(json.dumps({
             "node_id": node["id"],
             "step": node["step"],
@@ -831,6 +883,15 @@ examples:
         journal = load_journal(args.exp_dir, args.stage)
         briefing = get_stage_briefing(journal, args.stage)
         print(json.dumps(briefing, indent=2, default=str))
+
+    elif args.command == "dedup-check":
+        journal = load_journal(args.exp_dir, args.stage)
+        code = Path(args.code).read_text()
+        dup = find_duplicate_node(journal, code)
+        if dup:
+            print(json.dumps({"duplicate": True, "node_id": dup["id"], "step": dup.get("step"), "metric": dup.get("metric")}))
+        else:
+            print(json.dumps({"duplicate": False}))
 
     elif args.command == "test":
         print("Running self-test...")
