@@ -3,19 +3,15 @@
 # dependencies = []
 # ///
 """
-AI Scientist Skills — One-command setup.
+AI Scientist Skills — One-command setup. Run directly from GitHub:
 
-Usage:
-    uv run scripts/setup.py          # Full install (Python deps + all plugins)
-    uv run scripts/setup.py --deps   # Python dependencies only
-    uv run scripts/setup.py --check  # Just verify everything
+  uv run https://raw.githubusercontent.com/stamate/ai-scientist-skills/main/scripts/setup.py
 
-This installs:
-  1. Python dependencies via uv
-  2. ai-scientist-skills Claude Code plugin
-  3. codex-plugin-cc plugin (panel review, adversarial code review, rescue)
-  4. claude-scientific-skills plugin (78+ databases, IMRAD writing, DOI verification)
-  5. Codex CLI (npm)
+Modes:
+  --global   Install Claude plugins only (default when run from URL)
+  --local    Clone repo into current directory + install plugins + Python deps
+  --check    Verify installation status
+  --deps     Python dependencies only (requires local repo)
 """
 from __future__ import annotations
 
@@ -24,6 +20,9 @@ import shutil
 import subprocess
 import sys
 from pathlib import Path
+
+REPO = "stamate/ai-scientist-skills"
+REPO_URL = f"https://github.com/{REPO}.git"
 
 GREEN = "\033[92m"
 RED = "\033[91m"
@@ -36,7 +35,11 @@ WARN = f"{YELLOW}!{RESET}"
 
 
 def run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess:
-    return subprocess.run(cmd, capture_output=True, text=True, timeout=120, **kwargs)
+    return subprocess.run(cmd, capture_output=True, text=True, timeout=300, **kwargs)
+
+
+def run_live(cmd: list[str], **kwargs) -> int:
+    return subprocess.call(cmd, timeout=300, **kwargs)
 
 
 def step(msg: str) -> None:
@@ -55,75 +58,99 @@ def warn(msg: str) -> None:
     print(f"  {WARN} {msg}")
 
 
-def install_python_deps() -> bool:
-    step("[1/5] Python dependencies")
-    project_root = Path(__file__).resolve().parent.parent
+# ── Clone ──────────────────────────────────────────────────────────────────────
+
+
+def clone_repo(target: Path) -> bool:
+    step("Cloning ai-scientist-skills")
+    if (target / ".git").exists():
+        ok(f"Already cloned at {target}")
+        return True
+
+    git = shutil.which("git")
+    if not git:
+        fail("git not found")
+        return False
+
+    result = run([git, "clone", REPO_URL, str(target)])
+    if result.returncode == 0:
+        ok(f"Cloned to {target}")
+        return True
+
+    fail(f"Clone failed: {result.stderr[:200]}")
+    return False
+
+
+# ── Python deps ────────────────────────────────────────────────────────────────
+
+
+def install_python_deps(project_root: Path) -> bool:
+    step("Python dependencies")
     req_file = project_root / "requirements.txt"
 
     if not req_file.exists():
-        fail("requirements.txt not found")
+        warn("requirements.txt not found — skipping Python deps")
         return False
 
     uv = shutil.which("uv")
     if uv:
-        result = run([uv, "pip", "install", "-r", str(req_file)])
-        if result.returncode == 0:
-            ok("Installed via uv")
-            return True
-        # uv pip might need --system or a venv
-        result = run([uv, "pip", "install", "--system", "-r", str(req_file)])
-        if result.returncode == 0:
-            ok("Installed via uv (--system)")
-            return True
+        # Try with active venv first, then --system
+        for extra in [[], ["--system"]]:
+            result = run([uv, "pip", "install", *extra, "-r", str(req_file)])
+            if result.returncode == 0:
+                suffix = " (--system)" if extra else ""
+                ok(f"Installed via uv{suffix}")
+                return True
 
-    # Fallback to pip
     pip = shutil.which("pip3") or shutil.which("pip")
     if pip:
         result = run([pip, "install", "-r", str(req_file)])
         if result.returncode == 0:
             ok("Installed via pip")
             return True
-        warn(f"pip install failed: {result.stderr[:200]}")
+        warn(f"pip failed: {result.stderr[:200]}")
         return False
 
     fail("Neither uv nor pip found")
     return False
 
 
+# ── Claude plugins ─────────────────────────────────────────────────────────────
+
+
 def install_claude_plugin(name: str, repo: str) -> bool:
     claude = shutil.which("claude")
     if not claude:
-        fail("Claude Code CLI not found")
+        fail(f"Claude Code CLI not found — cannot install {name}")
         return False
 
     result = run([claude, "install", f"gh:{repo}"])
-    if result.returncode == 0:
+    out = result.stdout + result.stderr
+    if result.returncode == 0 or "already" in out.lower():
         ok(name)
         return True
 
-    # Might already be installed
-    if "already" in result.stderr.lower() or "already" in result.stdout.lower():
-        ok(f"{name} (already installed)")
-        return True
-
-    # Some versions use different output
-    ok(f"{name} (install attempted)")
+    # install may have succeeded with non-zero exit in some versions
+    ok(f"{name} (attempted)")
     return True
 
 
-def install_plugins() -> None:
-    step("[2/5] ai-scientist-skills plugin")
-    install_claude_plugin("ai-scientist-skills", "stamate/ai-scientist-skills")
+def install_all_plugins() -> None:
+    plugins = [
+        ("ai-scientist-skills", "stamate/ai-scientist-skills"),
+        ("codex-plugin-cc", "stamate/codex-plugin-cc"),
+        ("claude-scientific-skills", "stamate/claude-scientific-skills"),
+    ]
+    step(f"Claude Code plugins ({len(plugins)})")
+    for name, repo in plugins:
+        install_claude_plugin(name, repo)
 
-    step("[3/5] codex-plugin-cc (panel review, code review, rescue)")
-    install_claude_plugin("codex-plugin-cc", "stamate/codex-plugin-cc")
 
-    step("[4/5] claude-scientific-skills (databases, writing, visualization)")
-    install_claude_plugin("claude-scientific-skills", "stamate/claude-scientific-skills")
+# ── Codex CLI ──────────────────────────────────────────────────────────────────
 
 
 def install_codex_cli() -> bool:
-    step("[5/5] Codex CLI")
+    step("Codex CLI")
     if shutil.which("codex"):
         ok("Already installed")
         return True
@@ -135,50 +162,123 @@ def install_codex_cli() -> bool:
 
     result = run([npm, "install", "-g", "@openai/codex"])
     if result.returncode == 0:
-        ok("Installed via npm")
-        print(f"  {WARN} Run 'codex login' to authenticate")
+        ok("Installed")
+        warn("Run 'codex login' to authenticate")
         return True
 
     warn(f"npm install failed: {result.stderr[:200]}")
     return False
 
 
-def verify() -> None:
+# ── Verify ─────────────────────────────────────────────────────────────────────
+
+
+def verify(project_root: Path | None) -> None:
     step("Verification")
-    project_root = Path(__file__).resolve().parent.parent
-    verify_script = project_root / "tools" / "verify_setup.py"
-    if verify_script.exists():
-        subprocess.run([sys.executable, str(verify_script)])
+    if project_root and (project_root / "tools" / "verify_setup.py").exists():
+        run_live([sys.executable, str(project_root / "tools" / "verify_setup.py")])
     else:
-        warn("tools/verify_setup.py not found — skipping verification")
+        # Quick check without local repo
+        for name, cmd in [
+            ("Claude Code", ["claude", "--version"]),
+            ("Codex CLI", ["codex", "--version"]),
+        ]:
+            if shutil.which(cmd[0]):
+                ok(name)
+            else:
+                warn(f"{name} not found")
+
+
+# ── Main ───────────────────────────────────────────────────────────────────────
+
+
+def detect_project_root() -> Path | None:
+    """Find project root if we're inside the repo."""
+    here = Path.cwd()
+    for p in [here, *here.parents]:
+        if (p / "pyproject.toml").exists() and (p / "skills").exists():
+            return p
+    # Also check relative to this script (when run locally)
+    script_parent = Path(__file__).resolve().parent.parent
+    if (script_parent / "pyproject.toml").exists():
+        return script_parent
+    return None
 
 
 def main():
     import argparse
-    parser = argparse.ArgumentParser(description="AI Scientist Skills setup")
-    parser.add_argument("--deps", action="store_true", help="Install Python dependencies only")
-    parser.add_argument("--check", action="store_true", help="Verify installation only")
+
+    parser = argparse.ArgumentParser(
+        description="AI Scientist Skills — one-command setup",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  # Install from anywhere (no clone needed):
+  uv run https://raw.githubusercontent.com/stamate/ai-scientist-skills/main/scripts/setup.py
+
+  # Clone + full install into current directory:
+  uv run https://raw.githubusercontent.com/stamate/ai-scientist-skills/main/scripts/setup.py --local
+
+  # Just check what's installed:
+  uv run https://raw.githubusercontent.com/stamate/ai-scientist-skills/main/scripts/setup.py --check
+""",
+    )
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument(
+        "--global", dest="global_mode", action="store_true",
+        help="Install Claude plugins + Codex CLI only (default)",
+    )
+    mode.add_argument(
+        "--local", action="store_true",
+        help="Clone repo into ./ai-scientist-skills + install everything",
+    )
+    mode.add_argument("--deps", action="store_true", help="Python deps only (needs local repo)")
+    mode.add_argument("--check", action="store_true", help="Verify installation")
     args = parser.parse_args()
 
     print(f"\n{BOLD}=== AI Scientist Skills — Setup ==={RESET}")
 
+    project_root = detect_project_root()
+
     if args.check:
-        verify()
+        verify(project_root)
         return
 
     if args.deps:
-        install_python_deps()
+        if not project_root:
+            fail("Not inside the repo — use --local to clone first")
+            sys.exit(1)
+        install_python_deps(project_root)
         return
 
-    # Full install
-    install_python_deps()
-    install_plugins()
-    install_codex_cli()
-    verify()
+    if args.local:
+        # Clone + full install
+        target = Path.cwd() / "ai-scientist-skills"
+        if project_root:
+            print(f"  Already in repo at {project_root}")
+            target = project_root
+        else:
+            if not clone_repo(target):
+                sys.exit(1)
+        install_python_deps(target)
+        install_all_plugins()
+        install_codex_cli()
+        verify(target)
+    else:
+        # Global: plugins only (default)
+        install_all_plugins()
+        install_codex_cli()
+        verify(project_root)
 
-    print(f"\n{BOLD}=== Setup complete ==={RESET}")
-    print(f"\n  Quick start:")
-    print(f"    claude '/ai-scientist --workshop examples/ideas/i_cant_believe_its_not_better.md'")
+    print(f"\n{BOLD}=== Done ==={RESET}")
+    if args.local or project_root:
+        root = project_root or Path.cwd() / "ai-scientist-skills"
+        print(f"\n  Quick start:")
+        print(f"    cd {root}")
+        print(f"    claude '/ai-scientist --workshop examples/ideas/i_cant_believe_its_not_better.md'")
+    else:
+        print(f"\n  Plugins installed. To also get the repo:")
+        print(f"    uv run https://raw.githubusercontent.com/{REPO}/main/scripts/setup.py --local")
     print()
 
 
