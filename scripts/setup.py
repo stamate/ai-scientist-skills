@@ -304,6 +304,8 @@ Examples:
         verify(target)
     else:
         # Plugin install (user or project scope)
+        if project_root:
+            install_python_deps(project_root)
         if not install_all_plugins(scope):
             success = False
         install_codex_cli()
@@ -311,7 +313,8 @@ Examples:
         if not project_root:
             step("Note")
             warn("Plugins installed, but skills need the repo's tools/ and templates/ at runtime.")
-            print(f"      To get them, re-run with --local or clone the repo separately.")
+            warn("Python dependencies were NOT installed (no local repo found).")
+            print(f"      To get everything, re-run with --local or clone the repo separately.")
 
     if success:
         print(f"\n{BOLD}=== Done ==={RESET}")

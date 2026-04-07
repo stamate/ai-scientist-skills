@@ -226,12 +226,13 @@ This assessment adds scientific rigor to the review without changing the NeurIPS
 
 **Skip this step if** Codex is not available, the user specified `--no-codex`, or `codex.enabled` is `"false"` in config.
 
-Check Codex availability (CLI + plugin + config):
+Check Codex availability (CLI + plugin + auth):
 ```bash
 which codex 2>/dev/null && echo "CLI_OK" || echo "CLI_MISSING"
 (find "$HOME/.claude/plugins" ".claude/plugins" -maxdepth 5 -path "*stamate-codex*" -o -path "*codex-plugin-cc*" 2>/dev/null | head -1 | grep -q .) && echo "PLUGIN_OK" || echo "PLUGIN_MISSING"
+codex login status 2>/dev/null && echo "AUTH_OK" || echo "AUTH_MISSING"
 ```
-Both must be present. If either is missing, skip this step silently.
+All three must succeed. If any fails, skip this step silently.
 
 If `CODEX_AVAILABLE`, enhance the review with a Codex panel:
 
