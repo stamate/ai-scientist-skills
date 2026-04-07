@@ -27,7 +27,9 @@ This project provides a complete AI research automation pipeline as Claude Code 
 
 ## Tool Usage
 
-All tools are invoked via `uv run python3 tools/<module>.py` from the project root:
+When running from a cloned repo, tools are invoked via `uv run python3 tools/<module>.py`. When installed as a plugin, skills discover the plugin root first and use absolute paths (`"$AISCIENTIST_ROOT/tools/<module>.py"`). See any skill's "Locate Plugin Root" step for the discovery pattern.
+
+Tool reference (from project root):
 
 ```bash
 uv run python3 tools/verify_setup.py              # Verify all prerequisites
