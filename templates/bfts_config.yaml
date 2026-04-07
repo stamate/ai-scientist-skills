@@ -65,3 +65,12 @@ num_writeup_reflections: 3
 # ── Pipeline control ─────────────────────────────────────────────────────────
 skip_writeup: false
 skip_review: false
+
+# ── Codex integration (optional — requires codex-plugin-cc) ─────────────────
+codex:
+  enabled: auto              # auto (use if available) | true | false
+  stage_gate_review: true    # adversarial code review between BFTS stages
+  panel_paper_review: true   # Codex panel review of final paper
+  code_alignment: true       # code-methods alignment check (paper vs code)
+  rescue_on_stuck: true      # delegate to Codex when experiments are stuck
+  venue: auto                # auto (from writeup_type) | neurips | icml | iclr | workshop

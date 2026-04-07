@@ -14,6 +14,7 @@ You are the experiment orchestrator for the AI Scientist system. This skill mana
 - `--config <path>`: Path to config YAML (optional, defaults to `templates/bfts_config.yaml`)
 - `--exp-dir <path>`: Resume from existing experiment directory (optional)
 - `--start-stage <N>`: Start from stage N (1-4, default: 1)
+- `--no-codex`: Disable all Codex integration (stage-gate review, rescue) even if Codex is available
 
 Parse these from the user's message.
 
@@ -161,6 +162,106 @@ When a stage completes:
    The best node's code is still saved (via `save-best`) for reference if needed, but the primary handoff is the briefing.
 
 **Why briefings instead of code?** Each stage has fundamentally different goals. Stage 2 changes hyperparameters, Stage 3 changes architecture, Stage 4 adds ablation logic. Passing code forces the agent to work around existing structure. Passing conclusions lets it write clean code for the new goal.
+
+#### e. Stage-Gate Code Review (Optional — Codex)
+
+**Skip if** any of these conditions are true:
+- The global `codex.enabled` config value is `"false"`
+- The `--no-codex` flag was passed to the orchestrator
+- `codex.stage_gate_review` is `false` in config
+- The Codex CLI is not installed
+
+After completing a stage transition and before starting the next stage, optionally run an adversarial code review on the best node's code to catch subtle issues.
+
+1. **Check Codex availability** (respect global config and plugin presence):
+   ```bash
+   which codex 2>/dev/null && echo "CLI_OK" || echo "CLI_MISSING"
+   test -d "$HOME/.claude/plugins/marketplaces/stamate-codex" -o -d "$HOME/.claude/plugins/marketplaces/codex-plugin-cc" && echo "PLUGIN_OK" || echo "PLUGIN_MISSING"
+   ```
+   Both CLI and plugin must be present. Also check the loaded config's `codex.enabled` value. If it is `"false"`, or `--no-codex` was passed, skip this step.
+
+2. **If available**, get the promoted best solution (not workspace/runfile.py, which may be stale):
+   ```bash
+   python3 tools/state_manager.py save-best <exp_dir> <current_stage>
+   ```
+   This writes the best node's code to `<exp_dir>/state/<current_stage>/best_solution_<id>.py`. Use that file path for the review:
+   ```
+   /codex:rescue --fresh --wait "Adversarial code review of this ML experiment script. Check for: (1) data leakage between train/test splits, (2) incorrect metric computation, (3) device handling errors, (4) numerical instability (NaN/Inf), (5) unreproducible randomness, (6) silent failures in data loading, (7) incorrect loss function usage. Code path: <exp_dir>/state/<current_stage>/best_solution_<id>.py"
+   ```
+
+3. **Parse the rescue output**. Codex rescue returns prose (Markdown), not structured JSON. Read the output and identify any critical issues mentioned (data leakage, incorrect metrics, statistical errors, device bugs).
+
+4. **Persist findings** to a file that the next stage can read:
+   ```bash
+   cat > <exp_dir>/state/<current_stage>/codex_code_review.md << 'MD_EOF'
+   <codex rescue output — Markdown prose>
+   MD_EOF
+   ```
+
+5. **If critical issues found** (data leakage, incorrect metrics, statistical errors):
+   - When building the task description for the next stage (step 4 of the main loop), read `codex_code_review.md` and append a summary of critical findings directly into the `task_desc` string:
+     ```
+     Code Review Issues (from Codex — address these as a priority):
+     <summarize critical findings from codex_code_review.md>
+     ```
+   - This ensures the next stage's experiment-step agents see the issues in their `--task-desc` argument
+   - Print warning: "Codex found critical code issues — included in next stage's task description"
+
+6. **If no issues or only minor issues**:
+   - Proceed normally — no changes to the next stage's task description
+
+Note: The `stage-briefing` command does not automatically include `codex_code_review.md`. The findings must be injected into the task description manually as described above.
+
+This step typically adds 1-3 minutes per stage transition but can prevent wasted iterations in subsequent stages.
+
+#### f. Rescue for Stuck Experiments (Optional — Codex)
+
+**Skip if** any of these conditions are true:
+- The global `codex.enabled` config value is `"false"`
+- The `--no-codex` flag was passed to the orchestrator
+- `codex.rescue_on_stuck` is `false` in config
+- The Codex CLI is not installed
+
+If Stage 1 has used 80%+ of `stage1_max_iters` with zero good nodes, delegate diagnosis to Codex:
+
+1. **Collect recent error information**:
+   ```bash
+   python3 tools/state_manager.py journal-summary <exp_dir> stage1_initial
+   ```
+   Note the total nodes and buggy count.
+
+   Then get error details from recent buggy nodes. Read the stage journal to find node IDs:
+   ```bash
+   python3 -c "
+   import json, sys; sys.path.insert(0, 'tools')
+   from state_manager import load_journal, get_buggy_nodes
+   j = load_journal('<exp_dir>', 'stage1_initial')
+   buggy = get_buggy_nodes(j)[-3:]  # last 3 buggy nodes
+   for n in buggy:
+       print(f'Node {n[\"id\"]}: exc_type={n.get(\"exc_type\",\"?\")} exc_info={str(n.get(\"exc_info\",\"\"))[:200]}')
+       term = n.get('term_out', [])
+       # term_out may be a list (from splitlines) or a string
+       if isinstance(term, list):
+           lines = term
+       elif isinstance(term, str):
+           lines = term.strip().split('\\n')
+       else:
+           lines = []
+       if lines:
+           print('Last output:', '\\n'.join(lines[-15:]))
+       print('---')
+   "
+   ```
+   Use the printed exc_type, exc_info, and last output lines to build a concrete error summary for the rescue prompt.
+
+2. **Invoke Codex rescue** with the collected error details:
+   ```
+   /codex:rescue --fresh --wait "ML experiment is failing repeatedly. After <N> iterations, zero experiments produce valid metrics. Error details from recent attempts: <paste exc_type and exc_info from 2-3 buggy nodes>. The research goal is: <task_desc>. Experiment code is at: <exp_dir>/workspace/runfile.py. Diagnose the root cause and suggest a concrete fix approach."
+   ```
+
+3. **Use the diagnosis** to inform the next draft/debug action. Include Codex's recommendations in the task description for the next experiment-step agent.
+
+This is a last-resort mechanism — it only triggers when the BFTS tree is failing to produce any working code.
 
 ### 6. Post-Experiment
 

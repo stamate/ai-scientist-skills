@@ -186,6 +186,7 @@ A template is also available at `examples/workshop_template.md` if you prefer to
 |------|-------|-------------|
 | Skill | `/ai-scientist:writeup` | Generate LaTeX paper with automated citation gathering and iterative refinement. |
 | Skill | `/ai-scientist:review` | Structured peer review with NeurIPS-format scoring and figure assessment. |
+| Optional | `/ai-scientist:codex-review` | Codex panel review + code-methods alignment (requires codex-plugin-cc). |
 
 ### Utilities
 
@@ -291,6 +292,28 @@ writeup_type: icbinb       # "icbinb" (4-page) or "icml" (8-page)
 |----------|----------|-------------|
 | `S2_API_KEY` | No | Semantic Scholar API key for higher rate limits. Falls back to unauthenticated access or WebSearch. |
 
+### Codex Integration (Optional)
+
+Install the [codex-plugin-cc](https://github.com/stamate/codex-plugin-cc) plugin for enhanced reviews:
+
+```bash
+claude install gh:stamate/codex-plugin-cc
+npm install -g @openai/codex
+codex login
+```
+
+When Codex is available, the pipeline automatically:
+- Runs **panel paper review** with 3 personas (Empiricist, Theorist, Practitioner) + Area Chair synthesis
+- Performs **code-methods alignment** checking (paper claims vs. actual code)
+- Adds **adversarial code review** between BFTS experiment stages
+- Delegates **stuck experiment diagnosis** to Codex when Stage 1 fails
+
+Disable with `--no-codex` or in config:
+```yaml
+codex:
+  enabled: false
+```
+
 ## Comparison with AI-Scientist-v2
 
 | Aspect | AI-Scientist-v2 | AI Scientist Skills |
@@ -304,6 +327,7 @@ writeup_type: icbinb       # "icbinb" (4-page) or "icml" (8-page)
 | Parallelism | ProcessPoolExecutor | Claude Code Agent subagents |
 | Paper templates | ICML + ICBINB | ICML + ICBINB (same) |
 | Review format | NeurIPS JSON | NeurIPS JSON (same) |
+| Enhanced review | — | Optional Codex panel (3 personas + synthesis) |
 
 ## License
 

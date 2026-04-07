@@ -19,6 +19,8 @@ You are the AI Scientist, an autonomous research agent that generates novel rese
 - `--skip-writeup`: Skip the paper writing phase
 - `--skip-review`: Skip the review phase
 - `--seed-code <path>`: Path to optional seed code file
+- `--use-codex`: Force enable Codex integration (even if auto-detection fails)
+- `--no-codex`: Force disable Codex integration (even if Codex is installed)
 
 Parse from the user's message. If none of `--workshop`, `--idea`, or `--exp-dir` is provided, start with Phase 0.5 (Workshop Creator) to interactively guide the user.
 
@@ -62,6 +64,30 @@ Parse from the user's message. If none of `--workshop`, `--idea`, or `--exp-dir`
    ```
    Warn if pdflatex or bibtex is missing — the experiment can still run, paper generation will be skipped.
 
+5. **Detect Codex** (optional enhancement):
+
+   Check four conditions — CLI binary, Claude Code plugin, authentication, and config toggle:
+   ```bash
+   which codex 2>/dev/null && echo "CLI_OK" || echo "CLI_MISSING"
+   test -d "$HOME/.claude/plugins/marketplaces/stamate-codex" -o -d "$HOME/.claude/plugins/marketplaces/codex-plugin-cc" && echo "PLUGIN_OK" || echo "PLUGIN_MISSING"
+   codex login status 2>/dev/null && echo "AUTH_OK" || echo "AUTH_MISSING"
+   ```
+   Also read the `codex.enabled` value from the loaded config (step 3 above).
+
+   Determine `CODEX_ENABLED`:
+   - If `--no-codex` is set: `CODEX_ENABLED=false` regardless of anything else
+   - If `codex.enabled` is `"false"` in config: `CODEX_ENABLED=false`
+   - If `--use-codex` is set: `CODEX_ENABLED=true` (warn if CLI/plugin missing)
+   - If `codex.enabled` is `"auto"`: `CODEX_ENABLED=true` only if ALL of: CLI found, plugin directory exists, auth OK
+   - If `codex.enabled` is `"true"`: `CODEX_ENABLED=true` (warn if CLI/plugin missing)
+
+   Print result:
+   - If `CODEX_ENABLED=true`: "Codex detected — enhanced reviews enabled"
+   - If CLI missing: "Codex CLI not found — install with: npm install -g @openai/codex"
+   - If CLI found but plugin missing: "Codex CLI found but codex-plugin-cc not installed — install with: claude install gh:stamate/codex-plugin-cc"
+   - If CLI + plugin found but auth failed: "Codex installed but not authenticated — run: codex login"
+   - If `CODEX_ENABLED=false`: "Codex not enabled — using standard pipeline"
+
 ### Phase 0.5: Workshop Creator
 
 **Skip if** `--workshop`, `--idea`, or `--exp-dir` is already provided.
@@ -104,9 +130,16 @@ idea["Code"] = open(seed_code_path).read()
 
 ### Phase 3: Experiment
 
-Invoke the experiment skill:
+Invoke the experiment skill. If Codex is disabled, pass `--no-codex` so experiment-level Codex hooks are also skipped:
+
+**If `CODEX_ENABLED`**:
 ```
 /ai-scientist:experiment --idea <selected_idea_path> --config <config_path>
+```
+
+**If NOT `CODEX_ENABLED`**:
+```
+/ai-scientist:experiment --idea <selected_idea_path> --config <config_path> --no-codex
 ```
 
 This runs the 4-stage BFTS pipeline and produces experiment results.
@@ -137,12 +170,21 @@ This generates a complete LaTeX paper with citations and compiles to PDF.
 
 **Skip if** `--skip-review` is set, or if no PDF was generated.
 
-Invoke the review skill:
+Run the review skill. Forward `--no-codex` if Codex is disabled so the review skill skips Step 9:
+
+**If `CODEX_ENABLED`**:
 ```
 /ai-scientist:review --pdf <exp_dir>/paper.pdf --exp-dir <exp_dir>
 ```
+The review skill's Step 9 automatically invokes `/codex:paper-review --panel --venue <venue>` with code-methods alignment.
 
-This produces a structured peer review with scores.
+**If NOT `CODEX_ENABLED`**:
+```
+/ai-scientist:review --pdf <exp_dir>/paper.pdf --exp-dir <exp_dir> --no-codex
+```
+The review skill runs only the Claude review (steps 1-8) and skips Step 9.
+
+The `/ai-scientist:codex-review` skill exists for standalone use when the user wants Codex-only review without the Claude review.
 
 ### Phase 7: Summary Report
 
@@ -168,6 +210,9 @@ After all phases complete, provide a summary:
   Review:      <exp_dir>/review.json
     Overall Score: <score>/10
     Decision:      <Accept/Reject>
+  Codex Review: <exp_dir>/codex_review.md (if available)
+    Panel:       <recommendation> (Empiricist/Theorist/Practitioner consensus)
+    Alignment:   <aligned/minor-discrepancies/major-discrepancies>
 
 ═══════════════════════════════════════════════════════
 ```

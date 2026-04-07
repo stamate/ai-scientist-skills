@@ -161,6 +161,39 @@ def check_claude_code() -> bool:
         return False
 
 
+def check_codex() -> bool:
+    """Check if Codex CLI and Claude plugin are installed (optional enhancement)."""
+    codex = shutil.which("codex")
+    if not codex:
+        print(f"  {WARN} Codex CLI not found — standard pipeline only (optional)")
+        print(f"      Install: npm install -g @openai/codex")
+        return False
+    # CLI found — check if the Claude Code plugin is also installed
+    plugin_dirs = [
+        Path.home() / ".claude" / "plugins" / "marketplaces" / "stamate-codex",
+        Path.home() / ".claude" / "plugins" / "marketplaces" / "codex-plugin-cc",
+    ]
+    plugin_found = any(d.exists() for d in plugin_dirs)
+    if plugin_found:
+        # Check if codex is authenticated (best-effort)
+        try:
+            result = subprocess.run(
+                [codex, "login", "status"], capture_output=True, text=True, timeout=10,
+            )
+            if result.returncode != 0 or "not" in result.stdout.lower():
+                print(f"  {WARN} Codex CLI + plugin found but not authenticated")
+                print(f"      Run: codex login")
+                return False
+        except Exception:
+            pass  # login check is best-effort
+        print(f"  {CHECK} Codex CLI ({codex}) + plugin — enhanced reviews available")
+        return True
+    else:
+        print(f"  {WARN} Codex CLI found ({codex}) but codex-plugin-cc not installed")
+        print(f"      Run: claude install gh:stamate/codex-plugin-cc")
+        return False
+
+
 def main():
     print()
     print("AI Scientist Skills — Environment Check")
@@ -201,6 +234,11 @@ def main():
     print("\n[Claude Code]")
     if not check_claude_code():
         errors += 1
+
+    # Codex (optional enhancement)
+    print("\n[Codex Integration (optional)]")
+    if not check_codex():
+        warnings += 1
 
     # Summary
     print("\n" + "=" * 42)

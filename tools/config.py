@@ -53,6 +53,16 @@ class ExperimentConfig:
 
 
 @dataclass
+class CodexConfig:
+    enabled: str = "auto"  # "auto" | "true" | "false"
+    stage_gate_review: bool = True
+    panel_paper_review: bool = True
+    code_alignment: bool = True
+    rescue_on_stuck: bool = True
+    venue: str = "auto"  # "auto" | "neurips" | "icml" | "iclr" | "workshop"
+
+
+@dataclass
 class Config:
     """Top-level configuration for an AI Scientist experiment run."""
 
@@ -93,6 +103,9 @@ class Config:
     # Review
     skip_writeup: bool = False
     skip_review: bool = False
+
+    # Codex integration (optional)
+    codex: CodexConfig = field(default_factory=CodexConfig)
 
 
 # ── Default config path ──────────────────────────────────────────────────────

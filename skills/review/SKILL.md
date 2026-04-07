@@ -13,6 +13,7 @@ You are an experienced AI researcher performing a rigorous peer review of a rese
 - `--pdf <path>`: Path to the paper PDF (required)
 - `--exp-dir <path>`: Experiment directory (optional, for additional context)
 - `--output <path>`: Output directory for review files (default: same as PDF directory)
+- `--no-codex`: Skip Codex panel review even if Codex is available
 
 Parse from the user's message.
 
@@ -168,6 +169,74 @@ Present a concise summary:
 - Top 3 strengths
 - Top 3 weaknesses
 - Key recommendation
+
+### 9. Codex Panel Review (Optional Enhancement)
+
+**Skip this step if** Codex is not available or the user specified `--no-codex`.
+
+Check Codex availability (CLI + plugin + config):
+```bash
+which codex 2>/dev/null && echo "CLI_OK" || echo "CLI_MISSING"
+test -d "$HOME/.claude/plugins/marketplaces/stamate-codex" -o -d "$HOME/.claude/plugins/marketplaces/codex-plugin-cc" && echo "PLUGIN_OK" || echo "PLUGIN_MISSING"
+```
+Both must be present. If either is missing, skip this step silently.
+
+If `CODEX_AVAILABLE`, enhance the review with a Codex panel:
+
+1. **Read Codex config values** from the experiment's config (if `--exp-dir` provided):
+   ```bash
+   python3 tools/config.py --config <exp_dir>/config.yaml 2>/dev/null
+   ```
+   Extract:
+   - `codex.enabled` — if `"false"`, **skip this entire step** even if the CLI is on PATH
+   - `codex.venue` — if `"auto"`, derive from `writeup_type` (icbinb→workshop, icml→icml). Otherwise use the configured value.
+   - `codex.panel_paper_review` — if `false`, omit `--panel` flag
+   - `codex.code_alignment` — if `false`, omit `--code` flag even when `--exp-dir` is provided
+
+   If no config available, use defaults: enabled=`"auto"`, venue=`workshop`, panel=`true`, alignment=`true`.
+
+2. **Run Codex review** (respecting config toggles):
+
+   If `codex.code_alignment` is `true` and `--exp-dir` is provided, save the promoted best solution to a known path and use that:
+   ```bash
+   python3 tools/state_manager.py save-best <exp_dir> stage4_ablation 2>/dev/null || \
+   python3 tools/state_manager.py save-best <exp_dir> stage3_creative 2>/dev/null || \
+   python3 tools/state_manager.py save-best <exp_dir> stage2_baseline 2>/dev/null || \
+   python3 tools/state_manager.py save-best <exp_dir> stage1_initial
+   ```
+   This writes `best_solution_<id>.py` to the stage's state directory and prints the file path. Use the printed directory (e.g., `<exp_dir>/state/stage4_ablation/`) as `<best_solution_dir>`.
+
+   If `save-best` fails for all stages (no good nodes in any stage), skip code-methods alignment and log a warning.
+
+   Build the command based on config flags:
+   - Start with: `/codex:paper-review <pdf_path>`
+   - Add `--panel --venue <venue>` only if `codex.panel_paper_review` is `true` (venue requires panel)
+   - Add `--code <best_solution_dir>` only if alignment is enabled AND `--exp-dir` was provided AND `save-best` succeeded
+   - Add `--wait`
+
+   Example (all features enabled):
+   ```
+   /codex:paper-review <pdf_path> --panel --venue <venue> --code <best_solution_dir> --wait
+   ```
+
+   Example (panel disabled, alignment disabled — single reviewer, no venue):
+   ```
+   /codex:paper-review <pdf_path> --wait
+   ```
+
+4. **Save Codex outputs** (Codex returns rendered Markdown, not raw JSON):
+   ```bash
+   cat > <output_dir>/codex_review.md << 'MD_EOF'
+   <codex review output — Markdown>
+   MD_EOF
+   ```
+
+5. **Report Codex additions** alongside the Claude review:
+   - Codex panel recommendation and aggregated scores
+   - Any code-methods alignment issues found
+   - Note: The Claude review (steps 1-8) is the primary review; Codex adds a second opinion
+
+If Codex is not available, skip silently — the Claude review from steps 1-8 is complete on its own.
 
 ## Review Standards
 

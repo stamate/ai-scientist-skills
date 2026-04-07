@@ -28,6 +28,10 @@
       "type": "prompt",
       "path": "skills/review/SKILL.md"
     },
+    "ai-scientist:codex-review": {
+      "type": "prompt",
+      "path": "skills/codex-review/SKILL.md"
+    },
     "ai-scientist:lit-search": {
       "type": "prompt",
       "path": "skills/lit-search/SKILL.md"

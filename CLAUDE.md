@@ -15,6 +15,7 @@ This project provides a complete AI research automation pipeline as Claude Code 
 | `/ai-scientist:review` | Structured peer review (NeurIPS format) |
 | `/ai-scientist:lit-search` | Standalone literature search |
 | `/ai-scientist:workshop` | Interactive workshop description creator |
+| `/ai-scientist:codex-review` | Codex panel paper review with code-methods alignment (optional) |
 
 ## Project Layout
 
@@ -59,3 +60,25 @@ All generated experiment code must:
 3. Save plots to `figures/` directory
 4. Set random seeds for reproducibility
 5. Keep execution under 60 minutes
+
+## Codex Integration (Optional)
+
+When the **codex-plugin-cc** plugin is installed alongside ai-scientist-skills, the pipeline gains:
+
+- **Panel Paper Review**: 3 independent reviewer personas (Empiricist, Theorist, Practitioner) + Area Chair synthesis via `/codex:paper-review --panel`
+- **Venue Calibration**: Reviews calibrated to conference standards (NeurIPS ~25%, ICML ~25%, workshop ~50-70%)
+- **Code-Methods Alignment**: Verifies paper claims match experiment code (catches hyperparameter mismatches, data leakage, undocumented steps)
+- **Stage-Gate Code Review**: Adversarial code review of best experiment code between BFTS stages
+- **Rescue Delegation**: Codex diagnoses stuck experiments (Stage 1 failing after 80%+ iterations)
+
+All Codex features are **optional** — the pipeline works identically without it. Control via config:
+
+```yaml
+codex:
+  enabled: auto           # auto | true | false
+  stage_gate_review: true
+  panel_paper_review: true
+  code_alignment: true
+  rescue_on_stuck: true
+  venue: auto             # auto | neurips | icml | iclr | workshop
+```
