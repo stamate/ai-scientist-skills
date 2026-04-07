@@ -42,7 +42,7 @@ Parse from the user's message. If none of `--workshop`, `--idea`, or `--exp-dir`
 
 1. **Verify environment**:
    ```bash
-   python3 tools/verify_setup.py
+   uv run python3 tools/verify_setup.py
    ```
    If this fails (missing dependencies, wrong Python version, etc.), **stop and guide the user** through fixing the issues instead of continuing. Common problems:
    - `python: command not found` → tell the user to use `python3` or activate a virtualenv
@@ -51,17 +51,17 @@ Parse from the user's message. If none of `--workshop`, `--idea`, or `--exp-dir`
 
 2. **Detect device**:
    ```bash
-   python3 tools/device_utils.py --info
+   uv run python3 tools/device_utils.py --info
    ```
 
 3. **Load configuration**:
    ```bash
-   python3 tools/config.py --config <config_path>
+   uv run python3 tools/config.py --config <config_path>
    ```
 
 4. **Check LaTeX** (optional, only needed for writeup):
    ```bash
-   python3 tools/latex_compiler.py check
+   uv run python3 tools/latex_compiler.py check
    ```
    Warn if pdflatex or bibtex is missing — the experiment can still run, paper generation will be skipped.
 
@@ -137,7 +137,7 @@ This generates a JSON file with research ideas.
 
 If multiple ideas exist, select the one at `--idea-idx`:
 ```bash
-python3 -c "
+uv run python3 -c "
 import json
 ideas = json.load(open('<ideas_json_path>'))
 idea = ideas[<idea_idx>]
@@ -268,5 +268,5 @@ The pipeline supports resuming at any phase:
 - For a quick test run, use `--config` with reduced iterations:
   ```bash
   # Create a test config with fewer iterations
-  python3 tools/config.py --set agent.stages.stage1_max_iters=5 agent.stages.stage2_max_iters=3 agent.stages.stage3_max_iters=3 agent.stages.stage4_max_iters=3
+  uv run python3 tools/config.py --set agent.stages.stage1_max_iters=5 agent.stages.stage2_max_iters=3 agent.stages.stage3_max_iters=3 agent.stages.stage4_max_iters=3
   ```

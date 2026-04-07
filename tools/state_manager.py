@@ -590,14 +590,14 @@ if __name__ == "__main__":
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 examples:
-  python3 tools/state_manager.py init --idea idea.json --config templates/bfts_config.yaml
-  python3 tools/state_manager.py status experiments/20260402_idea
-  python3 tools/state_manager.py select-nodes experiments/20260402_idea stage1_initial
-  python3 tools/state_manager.py add-node experiments/20260402_idea stage1_initial --code runfile.py --plan "First draft" --metric '{"value":0.85,"maximize":false,"name":"val_loss"}'
-  python3 tools/state_manager.py best-node experiments/20260402_idea stage1_initial
-  python3 tools/state_manager.py save-best experiments/20260402_idea stage1_initial
-  python3 tools/state_manager.py transition experiments/20260402_idea stage1_initial stage2_baseline
-  python3 tools/state_manager.py update-state experiments/20260402_idea --phase complete --status done
+  uv run python3 tools/state_manager.py init --idea idea.json --config templates/bfts_config.yaml
+  uv run python3 tools/state_manager.py status experiments/20260402_idea
+  uv run python3 tools/state_manager.py select-nodes experiments/20260402_idea stage1_initial
+  uv run python3 tools/state_manager.py add-node experiments/20260402_idea stage1_initial --code runfile.py --plan "First draft" --metric '{"value":0.85,"maximize":false,"name":"val_loss"}'
+  uv run python3 tools/state_manager.py best-node experiments/20260402_idea stage1_initial
+  uv run python3 tools/state_manager.py save-best experiments/20260402_idea stage1_initial
+  uv run python3 tools/state_manager.py transition experiments/20260402_idea stage1_initial stage2_baseline
+  uv run python3 tools/state_manager.py update-state experiments/20260402_idea --phase complete --status done
         """,
     )
     sub = parser.add_subparsers(dest="command")

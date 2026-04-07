@@ -45,7 +45,7 @@ Think of a novel research direction within the workshop scope. Consider:
 
 Before finalizing, search for related work to check novelty:
 ```bash
-python3 tools/search.py "<your proposed topic keywords>" --limit 10 --json
+uv run python3 tools/search.py "<your proposed topic keywords>" --limit 10 --json
 ```
 
 If S2 returns no results, use the WebSearch tool to search `arxiv.org` for related papers.
@@ -98,7 +98,7 @@ Collect all ideas into a JSON array and save to the output file:
 
 Also validate against the schema:
 ```bash
-python3 -c "
+uv run python3 -c "
 import json
 with open('templates/idea_schema.json') as f:
     schema = json.load(f)
@@ -136,7 +136,7 @@ If `SCIENTIFIC_PLUGIN_MISSING`, skip this entire section silently.
 
 Then check if the feature is enabled in the active config (use `--config` path if provided, else default):
 ```bash
-python3 -c "
+uv run python3 -c "
 import yaml
 try:
     cfg = yaml.safe_load(open('<config_path_or_templates/bfts_config.yaml>'))

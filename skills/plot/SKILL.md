@@ -21,7 +21,7 @@ Parse from the user's message.
 
 Read the experiment state and gather all stage summaries:
 ```bash
-python3 -c "
+uv run python3 -c "
 import json, sys, os
 sys.path.insert(0, '.')
 from tools.state_manager import load_experiment_state, load_journal, get_best_node, get_journal_summary
@@ -125,7 +125,7 @@ If `SCIENTIFIC_PLUGIN_MISSING`, skip this entire section silently.
 
 Then check config (if experiment config is available):
 ```bash
-python3 -c "
+uv run python3 -c "
 import yaml
 try:
     cfg = yaml.safe_load(open('<exp_dir>/config.yaml'))

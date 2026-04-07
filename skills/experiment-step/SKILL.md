@@ -25,18 +25,18 @@ Parse these from the user's message or arguments.
 
 Check the current journal state:
 ```bash
-python3 tools/state_manager.py journal-summary <exp_dir> <stage>
+uv run python3 tools/state_manager.py journal-summary <exp_dir> <stage>
 ```
 
 If a parent node ID is provided, read the parent node's details:
 ```bash
-python3 tools/state_manager.py node-info <exp_dir> <stage> <parent_id> --show-code
+uv run python3 tools/state_manager.py node-info <exp_dir> <stage> <parent_id> --show-code
 ```
 
 ### 2. Detect Device
 
 ```bash
-python3 tools/device_utils.py --preamble
+uv run python3 tools/device_utils.py --preamble
 ```
 
 ### 3. Generate Experiment Code
@@ -59,7 +59,7 @@ Based on the action type, generate a complete Python experiment script:
 #### For `improve` (enhance good parent):
 - Read the parent's metrics and analysis from node-info
 - If this is the **first node of a new stage** (parent from previous stage):
-  - Read the stage briefing: `python3 tools/state_manager.py stage-briefing <exp_dir> <previous_stage>`
+  - Read the stage briefing: `uv run python3 tools/state_manager.py stage-briefing <exp_dir> <previous_stage>`
   - Write fresh code informed by the briefing's findings and metrics
   - Do NOT copy the parent's code — the goals have changed
 - If this is a **within-stage improvement**:
@@ -107,13 +107,13 @@ mkdir -p <exp_dir>/workspace/figures
 
 Execute and capture output:
 ```bash
-cd <exp_dir>/workspace && timeout 3600 python3 runfile.py 2>&1 | tee <exp_dir>/logs/step_<N>_output.txt
+cd <exp_dir>/workspace && timeout 3600 uv run python3 runfile.py 2>&1 | tee <exp_dir>/logs/step_<N>_output.txt
 ```
 
 ### 5. Parse Metrics
 
 ```bash
-python3 tools/metric_parser.py <exp_dir>/logs/step_<N>_output.txt --json
+uv run python3 tools/metric_parser.py <exp_dir>/logs/step_<N>_output.txt --json
 ```
 
 ### 6. Analyze Plots
@@ -130,7 +130,7 @@ If plots were generated in `<exp_dir>/workspace/figures/`:
 ### 8. Save Node to Journal
 
 ```bash
-python3 tools/state_manager.py add-node <exp_dir> <stage> \
+uv run python3 tools/state_manager.py add-node <exp_dir> <stage> \
     --plan "<brief plan description>" \
     --code <exp_dir>/workspace/runfile.py \
     --output-log <exp_dir>/logs/step_<N>_output.txt \

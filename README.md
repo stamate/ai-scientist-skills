@@ -102,7 +102,7 @@ claude plugin install ai-scientist@ai-scientist-skills
 ### Verify
 
 ```bash
-python3 tools/verify_setup.py
+uv run python3 tools/verify_setup.py
 ```
 
 Checks Python version, all dependencies, PyTorch device, LaTeX tools, and Claude Code CLI in one go.
@@ -227,7 +227,7 @@ The experiment phase uses a **4-stage Best-First Tree Search (BFTS)**, faithfull
 
 ## Python Tools
 
-All tools are invoked via `python3 tools/<module>.py` from the project root.
+All tools are invoked via `uv run python3 tools/<module>.py` from the project root.
 
 | Tool | Purpose |
 |------|---------|
