@@ -169,18 +169,29 @@ def check_codex() -> bool:
         print(f"      Install: npm install -g @openai/codex")
         return False
     # CLI found — check if the Claude Code plugin is also installed
-    plugin_dirs = [
-        Path.home() / ".claude" / "plugins" / "marketplaces" / "stamate-codex",
-        Path.home() / ".claude" / "plugins" / "marketplaces" / "codex-plugin-cc",
-    ]
-    plugin_found = any(d.exists() for d in plugin_dirs)
+    # Search both global (~/.claude/plugins/) and project-local (.claude/plugins/)
+    plugin_found = False
+    for root in [Path.home() / ".claude" / "plugins", Path(".claude") / "plugins"]:
+        if not root.exists():
+            continue
+        try:
+            result = subprocess.run(
+                ["find", str(root), "-maxdepth", "5",
+                 "-path", "*stamate-codex*", "-o", "-path", "*codex-plugin-cc*"],
+                capture_output=True, text=True, timeout=10,
+            )
+            if result.stdout.strip():
+                plugin_found = True
+                break
+        except Exception:
+            pass
     if plugin_found:
         # Check if codex is authenticated (best-effort)
         try:
             result = subprocess.run(
                 [codex, "login", "status"], capture_output=True, text=True, timeout=10,
             )
-            if result.returncode != 0 or "not" in result.stdout.lower():
+            if result.returncode != 0:
                 print(f"  {WARN} Codex CLI + plugin found but not authenticated")
                 print(f"      Run: codex login")
                 return False
@@ -198,16 +209,20 @@ def check_scientific_skills() -> bool:
     """Check if claude-scientific-skills plugin is installed (optional enhancement)."""
     # Check for key scientific skills (research-lookup, citation-management, scientific-writing)
     # These may come from claude-scientific-skills or claude-scientific-writer plugins
-    plugins_root = Path.home() / ".claude" / "plugins"
+    # Search both global (~/.claude/plugins/) and project-local (.claude/plugins/)
     plugin_found = False
-    if plugins_root.exists():
+    for root in [Path.home() / ".claude" / "plugins", Path(".claude") / "plugins"]:
+        if not root.exists():
+            continue
         try:
             result = subprocess.run(
-                ["find", str(plugins_root), "-maxdepth", "8", "-name", "SKILL.md",
+                ["find", str(root), "-maxdepth", "8", "-name", "SKILL.md",
                  "-path", "*research-lookup*"],
                 capture_output=True, text=True, timeout=10,
             )
-            plugin_found = bool(result.stdout.strip())
+            if result.stdout.strip():
+                plugin_found = True
+                break
         except Exception:
             pass
     if plugin_found:

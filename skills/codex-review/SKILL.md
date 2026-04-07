@@ -109,7 +109,7 @@ The Codex plugin returns a structured JSON review with:
 - In panel mode: individual reviewer scores + Area Chair synthesis with `consensus_points`, `disagreements`, `aggregated_scores`, `priority_actions`
 - If `--code` was used: additional code-methods alignment findings covering hyperparameter mismatches, undocumented preprocessing, data leakage, statistical errors, and missing code
 
-### 5. Save Outputs
+### 4. Save Outputs
 
 The Codex paper-review command returns rendered Markdown, not raw JSON. Save the verbatim output:
 
@@ -126,7 +126,7 @@ cat > <output_dir>/codex_review_structured.json << 'JSON_EOF'
 JSON_EOF
 ```
 
-### 6. Merge with Claude Review (if exists)
+### 5. Merge with Claude Review (if exists)
 
 If a Claude review already exists at `<output_dir>/review.json`, generate a merged summary.
 
@@ -163,7 +163,7 @@ cat > <output_dir>/merged_review.json << 'JSON_EOF'
 JSON_EOF
 ```
 
-### 7. Report Summary
+### 6. Report Summary
 
 Present:
 - Codex panel recommendation and scores

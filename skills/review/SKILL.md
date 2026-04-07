@@ -276,14 +276,14 @@ If `CODEX_AVAILABLE`, enhance the review with a Codex panel:
    /codex:paper-review <pdf_path> --wait
    ```
 
-4. **Save Codex outputs** (Codex returns rendered Markdown, not raw JSON):
+3. **Save Codex outputs** (Codex returns rendered Markdown, not raw JSON):
    ```bash
    cat > <output_dir>/codex_review.md << 'MD_EOF'
    <codex review output — Markdown>
    MD_EOF
    ```
 
-5. **Report Codex additions** alongside the Claude review:
+4. **Report Codex additions** alongside the Claude review:
    - Codex panel recommendation and aggregated scores
    - Any code-methods alignment issues found
    - Note: The Claude review (steps 1-8) is the primary review; Codex adds a second opinion

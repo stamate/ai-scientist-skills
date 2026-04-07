@@ -195,13 +195,13 @@ This generates a complete LaTeX paper with citations and compiles to PDF.
 
 **Skip if** `--skip-review` is set, or if no PDF was generated.
 
-Run the review skill. Forward `--no-codex` if Codex is disabled so the review skill skips Step 9:
+Run the review skill. Forward `--no-codex` if Codex is disabled so the review skill skips Step 10:
 
 **If `CODEX_ENABLED`**:
 ```
 /ai-scientist:review --pdf <exp_dir>/paper.pdf --exp-dir <exp_dir>
 ```
-The review skill's Step 9 automatically invokes `/codex:paper-review --panel --venue <venue>` with code-methods alignment.
+The review skill's Step 10 automatically invokes `/codex:paper-review --panel --venue <venue>` with code-methods alignment.
 
 **If NOT `CODEX_ENABLED`**:
 ```

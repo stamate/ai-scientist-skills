@@ -38,11 +38,17 @@ python3 tools/state_manager.py status DIR            # Check experiment state
 python3 tools/state_manager.py select-nodes DIR STAGE # Pick nodes to expand
 python3 tools/state_manager.py add-node DIR STAGE ... # Record experiment result
 python3 tools/state_manager.py best-node DIR STAGE   # Get best node
+python3 tools/state_manager.py save-best DIR STAGE   # Save best node code to file
 python3 tools/state_manager.py transition DIR S1 S2  # Move to next stage
+python3 tools/state_manager.py stage-briefing DIR STAGE  # Stage handoff summary
+python3 tools/state_manager.py journal-summary DIR STAGE # Stage progress counts
+python3 tools/state_manager.py node-info DIR STAGE ID    # Node details
+python3 tools/state_manager.py update-state DIR ...      # Update experiment state
 python3 tools/metric_parser.py FILE        # Parse metrics from output
 python3 tools/latex_compiler.py compile DIR # Compile LaTeX to PDF
 python3 tools/pdf_reader.py FILE           # Extract PDF text
 python3 tools/config.py --config FILE      # Load/display config
+python3 tools/config.py --set KEY=VAL ...  # Override config values (e.g. codex.enabled=false)
 ```
 
 ## Environment

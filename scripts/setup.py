@@ -291,7 +291,8 @@ Examples:
     scope_note = "project (.claude/plugins/)" if scope == "project" else "global (~/.claude/plugins/)"
     print(f"  Scope: {scope_note}")
     if args.local or project_root:
-        root = project_root or Path.cwd() / "ai-scientist-skills"
+        # After --local os.chdir, cwd IS the target — don't append again
+        root = project_root or (target if args.local else Path.cwd() / "ai-scientist-skills")
         print(f"\n  Quick start:")
         print(f"    cd {root}")
         print(f"    claude '/ai-scientist --workshop examples/ideas/i_cant_believe_its_not_better.md'")
