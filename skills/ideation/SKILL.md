@@ -158,17 +158,19 @@ When enabled, augment the basic S2 literature search (step 2b) with multi-databa
    ```
    This uses Perplexity-powered academic search for the latest studies, preprints, and trends not yet indexed by S2.
 
-2. **Multi-database paper search** — for broader coverage:
+2. **Multi-database paper search** (only if `/paper-lookup` is available — check by attempting to invoke it):
    ```
    /paper-lookup "<specific query>"
    ```
    This searches 10 databases (PubMed, arXiv, bioRxiv, OpenAlex, Crossref, Semantic Scholar, CORE, Unpaywall) for related work, citation networks, and open-access full text.
+   If `/paper-lookup` is not available (e.g., using claude-scientific-writer which doesn't include it), skip this step silently.
 
-3. **Mechanistic evidence** (for biology/chemistry/materials topics) — if the research area involves specific genes, proteins, compounds, or pathways:
+3. **Mechanistic evidence** (only if `/database-lookup` is available, and for biology/chemistry/materials topics):
    ```
    /database-lookup "<entity name>"
    ```
    This queries 78+ databases (UniProt, STRING, Reactome, PubChem, ChEMBL, COSMIC, etc.) for mechanistic evidence that can strengthen or challenge the hypothesis.
+   If `/database-lookup` is not available, skip this step silently.
 
 Use these additional results to:
 - Discover related work that S2 alone might miss (especially preprints and non-English venues)

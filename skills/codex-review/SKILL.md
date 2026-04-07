@@ -39,9 +39,10 @@ Both the Codex CLI and the codex-plugin-cc Claude Code plugin must be installed:
 which codex 2>/dev/null && echo "CLI_OK" || echo "CLI_MISSING"
 ```
 
-Also verify the Claude Code plugin is registered (check common install paths):
+Also verify the Claude Code plugin is registered and Codex is authenticated:
 ```bash
 test -d "$HOME/.claude/plugins/marketplaces/stamate-codex" -o -d "$HOME/.claude/plugins/marketplaces/codex-plugin-cc" && echo "PLUGIN_OK" || echo "PLUGIN_MISSING"
+codex login status 2>/dev/null && echo "AUTH_OK" || echo "AUTH_MISSING"
 ```
 
 If CLI is missing:
@@ -50,6 +51,11 @@ If CLI is missing:
 
 If CLI found but plugin missing:
 - Print: "Codex CLI found but codex-plugin-cc not installed. Install with: claude install gh:stamate/codex-plugin-cc"
+- Print: "Falling back to standard review. Use /ai-scientist:review instead."
+- **Stop here.**
+
+If CLI + plugin found but not authenticated:
+- Print: "Codex installed but not authenticated. Run: codex login"
 - Print: "Falling back to standard review. Use /ai-scientist:review instead."
 - **Stop here.**
 
