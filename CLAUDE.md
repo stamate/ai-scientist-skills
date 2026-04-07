@@ -10,6 +10,8 @@ This project provides a complete AI research automation pipeline as Claude Code 
 | `/ai-scientist:ideation` | Generate research ideas with literature search |
 | `/ai-scientist:experiment` | 4-stage BFTS experiment pipeline |
 | `/ai-scientist:experiment-step` | Single BFTS iteration (internal) |
+| `/ai-scientist:experiment-generate` | Code generation only — pairs with experiment-execute (internal) |
+| `/ai-scientist:experiment-execute` | Execution only — run code, parse metrics, record node (internal) |
 | `/ai-scientist:plot` | Aggregate publication-quality figures |
 | `/ai-scientist:writeup` | Generate LaTeX paper with citations |
 | `/ai-scientist:review` | Structured peer review (NeurIPS format) |

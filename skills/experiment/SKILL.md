@@ -35,7 +35,7 @@ Parse these from the user's message.
 if [ -f "tools/verify_setup.py" ]; then AISCIENTIST_ROOT="$(pwd)"
 elif [ -f "$HOME/.claude/plugins/marketplaces/ai-scientist-skills/tools/verify_setup.py" ]; then AISCIENTIST_ROOT="$HOME/.claude/plugins/marketplaces/ai-scientist-skills"
 else AISCIENTIST_ROOT=$(find "$HOME/.claude/plugins" ".claude/plugins" -maxdepth 8 -name "verify_setup.py" -path "*ai-scientist*" 2>/dev/null | head -1 | xargs dirname | xargs dirname); fi
-export AISCIENTIST_ROOT; echo "Plugin root: $AISCIENTIST_ROOT"
+export AISCIENTIST_ROOT; if [ -z "$AISCIENTIST_ROOT" ]; then echo "ERROR: Could not find ai-scientist-skills plugin root. Install with: claude plugin marketplace add stamate/ai-scientist-skills"; fi; echo "Plugin root: $AISCIENTIST_ROOT"
 ```
 
 ### 1. Initialize Experiment
@@ -138,11 +138,20 @@ When a stage completes, run the best node's code with multiple random seeds to v
    uv run python3 "$AISCIENTIST_ROOT/tools/state_manager.py" best-node <exp_dir> <stage> --show-code
    ```
 
-2. Run it with different seeds (42, 123, 456) via the SEED env var:
+2. Run it with different seeds (42, 123, 456). First check if the code uses the SEED env var (new style) or hardcoded seeds (old style):
    ```bash
-   for seed in 42 123 456; do
-       cd <exp_dir>/workspace && SEED=$seed timeout 3600 uv run python3 runfile.py 2>&1 | tee <exp_dir>/logs/seed_${seed}_output.txt
-   done
+   if grep -q 'os.environ.get.*SEED' <exp_dir>/workspace/runfile.py; then
+       # New style: uses SEED env var
+       for seed in 42 123 456; do
+           cd <exp_dir>/workspace && SEED=$seed timeout 3600 uv run python3 runfile.py 2>&1 | tee <exp_dir>/logs/seed_${seed}_output.txt
+       done
+   else
+       # Old style: hardcoded seed — use sed fallback for backward compatibility
+       for seed in 42 123 456; do
+           sed "s/torch.manual_seed([0-9]*)/torch.manual_seed($seed)/g" <exp_dir>/workspace/runfile.py > <exp_dir>/workspace/runfile_seed_$seed.py
+           cd <exp_dir>/workspace && timeout 3600 uv run python3 runfile_seed_$seed.py 2>&1 | tee <exp_dir>/logs/seed_${seed}_output.txt
+       done
+   fi
    ```
 
 3. Collect and compare metrics across seeds.

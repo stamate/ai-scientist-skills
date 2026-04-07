@@ -8,8 +8,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import sys
-from pathlib import Path
 
 import yaml
 
@@ -64,12 +62,30 @@ def estimate(config: dict, num_ideas: int = 3) -> dict:
             codex_total += 3 * TOKENS_PER_CODEX_REVIEW  # 3 stage-gate reviews
         if codex_cfg.get("panel_paper_review", True):
             codex_total += TOKENS_PER_CODEX_REVIEW  # panel paper review
+        if codex_cfg.get("code_alignment", True):
+            codex_total += TOKENS_PER_CODEX_REVIEW // 2  # alignment is part of review
+        if codex_cfg.get("rescue_on_stuck", True):
+            codex_total += TOKENS_PER_CODEX_REVIEW  # worst-case rescue invocation
 
     if sci_enabled:
         if sci_cfg.get("enhanced_literature", True):
             claude_total += num_ideas * TOKENS_PER_LIT_SEARCH * 3
+        if sci_cfg.get("enhanced_writing", True):
+            claude_total += TOKENS_PER_CITE_ROUND * 2  # extra citation verification
+        if sci_cfg.get("enhanced_figures", True):
+            claude_total += 5_000  # figure formatting guidance
         if sci_cfg.get("enhanced_review", True):
             claude_total += TOKENS_PER_SCIENTIFIC_REVIEW
+
+    # Revision loop (if enabled)
+    revision_cfg = config.get("revision", {})
+    revision_enabled = revision_cfg.get("enabled", False)
+    revision_passes = revision_cfg.get("max_passes", 0) if revision_enabled else 0
+    revision_total = 0
+    if revision_passes > 0:
+        # Each revision pass can re-run writeup + review
+        revision_total = revision_passes * (writeup + review)
+        claude_total += revision_total
 
     return {
         "ideation": ideation,
@@ -78,10 +94,12 @@ def estimate(config: dict, num_ideas: int = 3) -> dict:
         "transitions": transitions,
         "writeup": writeup,
         "review": review,
+        "revision": revision_total,
         "claude_total": claude_total,
         "codex_total": codex_total,
         "codex_enabled": codex_enabled,
         "scientific_skills_enabled": sci_enabled,
+        "revision_passes": revision_passes,
     }
 
 
@@ -115,6 +133,8 @@ def main():
     print(f"  Stage transitions:                     {format_tokens(est['transitions']):>8}")
     print(f"  Writeup (citations + reflections):     {format_tokens(est['writeup']):>8}")
     print(f"  Review:                                {format_tokens(est['review']):>8}")
+    if est["revision_passes"] > 0:
+        print(f"  Revision ({est['revision_passes']} passes):              {format_tokens(est['revision']):>8}")
     print(f"  {'─' * 48}")
     print(f"  Total Claude:  {format_tokens(est['claude_total']):>8}")
     if est["codex_enabled"]:

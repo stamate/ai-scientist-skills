@@ -52,7 +52,7 @@ Parse from the user's message. If none of `--workshop`, `--idea`, or `--exp-dir`
    else
        AISCIENTIST_ROOT=$(find "$HOME/.claude/plugins" ".claude/plugins" -maxdepth 8 -name "verify_setup.py" -path "*ai-scientist*" 2>/dev/null | head -1 | xargs dirname | xargs dirname)
    fi
-   export AISCIENTIST_ROOT; echo "AI Scientist root: $AISCIENTIST_ROOT"
+   export AISCIENTIST_ROOT; if [ -z "$AISCIENTIST_ROOT" ]; then echo "ERROR: Could not find ai-scientist-skills plugin root. Install with: claude plugin marketplace add stamate/ai-scientist-skills"; fi; echo "AI Scientist root: $AISCIENTIST_ROOT"
    ```
    **All subsequent `tools/` references in this skill and sub-skills must use `"$AISCIENTIST_ROOT/tools/"`** instead of bare `tools/`. Similarly, `templates/` becomes `"$AISCIENTIST_ROOT/templates/"`.
 
@@ -298,14 +298,15 @@ For each revision pass (up to max_passes):
    - Everything else -> re-run writeup (default)
 
 5. **Re-run affected phases**:
-   - If experiments need re-running: invoke `/ai-scientist:experiment --exp-dir <exp_dir> --start-stage <relevant_stage>`
+   - If experiments need re-running: invoke `/ai-scientist:experiment --exp-dir <exp_dir> --start-stage <N>` where N is the stage number (1=initial, 2=baseline, 3=creative, 4=ablation)
    - If plots need re-running: invoke `/ai-scientist:plot --exp-dir <exp_dir>`
    - If writeup needs re-running: invoke `/ai-scientist:writeup --exp-dir <exp_dir> --type <type>` with the review feedback injected into the task context
    - Always re-run writeup after any experiment/plot changes
 
-6. **Re-review**: invoke `/ai-scientist:review --pdf <exp_dir>/paper.pdf --exp-dir <exp_dir>`
-   - Save as `review_pass<N>.json` to preserve history
-   - Copy to `review.json` for next iteration check
+6. **Re-review**:
+   - First, preserve the current review: `cp <exp_dir>/review.json <exp_dir>/review_pass<N>.json`
+   - Then re-run: invoke `/ai-scientist:review --pdf <exp_dir>/paper.pdf --exp-dir <exp_dir>`
+   - The review skill writes the new review to `review.json`, which is checked in the next loop iteration check
 
 7. **Report revision**: "Revision pass <N> complete. New score: <new_score>/10 (was: <old_score>/10)"
 
