@@ -42,8 +42,10 @@ def estimate(config: dict, num_ideas: int = 3) -> dict:
     cite_rounds = config.get("num_cite_rounds", 5)
     writeup_reflections = config.get("num_writeup_reflections", 3)
 
-    codex_enabled = str(config.get("codex", {}).get("enabled", "auto")).lower() != "false"
-    sci_enabled = str(config.get("scientific_skills", {}).get("enabled", "auto")).lower() != "false"
+    codex_cfg = config.get("codex", {})
+    sci_cfg = config.get("scientific_skills", {})
+    codex_enabled = str(codex_cfg.get("enabled", "auto")).lower() != "false"
+    sci_enabled = str(sci_cfg.get("enabled", "auto")).lower() != "false"
 
     ideation = num_ideas * (
         TOKENS_PER_IDEA_REFLECTION * num_reflections + TOKENS_PER_LIT_SEARCH * 2
@@ -58,10 +60,16 @@ def estimate(config: dict, num_ideas: int = 3) -> dict:
 
     codex_total = 0
     if codex_enabled:
-        codex_total = 4 * TOKENS_PER_CODEX_REVIEW
+        if codex_cfg.get("stage_gate_review", True):
+            codex_total += 3 * TOKENS_PER_CODEX_REVIEW  # 3 stage-gate reviews
+        if codex_cfg.get("panel_paper_review", True):
+            codex_total += TOKENS_PER_CODEX_REVIEW  # panel paper review
 
     if sci_enabled:
-        claude_total += num_ideas * TOKENS_PER_LIT_SEARCH * 3 + TOKENS_PER_SCIENTIFIC_REVIEW
+        if sci_cfg.get("enhanced_literature", True):
+            claude_total += num_ideas * TOKENS_PER_LIT_SEARCH * 3
+        if sci_cfg.get("enhanced_review", True):
+            claude_total += TOKENS_PER_SCIENTIFIC_REVIEW
 
     return {
         "ideation": ideation,
