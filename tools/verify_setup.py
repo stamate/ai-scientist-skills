@@ -171,7 +171,7 @@ def check_codex() -> bool:
     # CLI found — check if the Claude Code plugin is also installed
     # Search both global (~/.claude/plugins/) and project-local (.claude/plugins/)
     plugin_found = False
-    for root in [Path.home() / ".claude" / "plugins", Path(".claude") / "plugins"]:
+    for root in [Path(".claude") / "plugins", Path.home() / ".claude" / "plugins" / "cache", Path.home() / ".claude" / "plugins"]:
         if not root.exists():
             continue
         try:
@@ -211,7 +211,7 @@ def check_scientific_skills() -> bool:
     # These may come from claude-scientific-skills or claude-scientific-writer plugins
     # Search both global (~/.claude/plugins/) and project-local (.claude/plugins/)
     plugin_found = False
-    for root in [Path.home() / ".claude" / "plugins", Path(".claude") / "plugins"]:
+    for root in [Path(".claude") / "plugins", Path.home() / ".claude" / "plugins" / "cache", Path.home() / ".claude" / "plugins"]:
         if not root.exists():
             continue
         try:

@@ -48,7 +48,7 @@ Parse from the user's message. If none of `--workshop`, `--idea`, or `--exp-dir`
    if [ -f "tools/verify_setup.py" ]; then
        AISCIENTIST_ROOT="$(pwd)"
    else
-       AISCIENTIST_ROOT=$(find ".claude/plugins" "$HOME/.claude/plugins" -maxdepth 8 -name "verify_setup.py" -path "*ai-scientist*" 2>/dev/null | head -1 | xargs dirname | xargs dirname)
+       AISCIENTIST_ROOT=$(find ".claude/plugins" "$HOME/.claude/plugins/cache" "$HOME/.claude/plugins" -maxdepth 8 -name "verify_setup.py" -path "*ai-scientist*" 2>/dev/null | head -1 | xargs dirname | xargs dirname)
    fi
    export AISCIENTIST_ROOT; if [ -z "$AISCIENTIST_ROOT" ]; then echo "ERROR: Could not find ai-scientist-skills plugin root. Install with: claude plugin marketplace add stamate/ai-scientist-skills"; fi; echo "AI Scientist root: $AISCIENTIST_ROOT"
    ```
@@ -87,7 +87,7 @@ Parse from the user's message. If none of `--workshop`, `--idea`, or `--exp-dir`
    ```bash
    which codex 2>/dev/null && echo "CLI_OK" || echo "CLI_MISSING"
    # Check both global (~/.claude/plugins/) and project-local (.claude/plugins/) paths
-   (find "$HOME/.claude/plugins" ".claude/plugins" -maxdepth 5 -path "*stamate-codex*" -o -path "*codex-plugin-cc*" 2>/dev/null | head -1 | grep -q .) && echo "PLUGIN_OK" || echo "PLUGIN_MISSING"
+   (find "$HOME/.claude/plugins/cache" "$HOME/.claude/plugins" ".claude/plugins" -maxdepth 5 -path "*stamate-codex*" -o -path "*codex-plugin-cc*" 2>/dev/null | head -1 | grep -q .) && echo "PLUGIN_OK" || echo "PLUGIN_MISSING"
    codex login status 2>/dev/null && echo "AUTH_OK" || echo "AUTH_MISSING"
    ```
    Also read the `codex.enabled` value from the loaded config (step 3 above).
@@ -111,7 +111,7 @@ Parse from the user's message. If none of `--workshop`, `--idea`, or `--exp-dir`
    Check if the claude-scientific-skills plugin is installed:
    ```bash
    # Check both global and project-local plugin paths for the research-lookup skill
-   find "$HOME/.claude/plugins" ".claude/plugins" -maxdepth 8 -name "SKILL.md" -path "*research-lookup*" 2>/dev/null | head -1 | grep -q . && echo "SCIENTIFIC_SKILLS_OK" || echo "SCIENTIFIC_SKILLS_MISSING"
+   find "$HOME/.claude/plugins/cache" "$HOME/.claude/plugins" ".claude/plugins" -maxdepth 8 -name "SKILL.md" -path "*research-lookup*" 2>/dev/null | head -1 | grep -q . && echo "SCIENTIFIC_SKILLS_OK" || echo "SCIENTIFIC_SKILLS_MISSING"
    ```
    This checks for the `/research-lookup` skill which is present in claude-scientific-skills and claude-scientific-writer plugins.
    Also read the `scientific_skills.enabled` value from the loaded config (step 3).

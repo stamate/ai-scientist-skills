@@ -25,7 +25,7 @@ Parse these from the user's message.
 
 ```bash
 if [ -f "tools/verify_setup.py" ]; then AISCIENTIST_ROOT="$(pwd)"
-else AISCIENTIST_ROOT=$(find ".claude/plugins" "$HOME/.claude/plugins" -maxdepth 8 -name "verify_setup.py" -path "*ai-scientist*" 2>/dev/null | head -1 | xargs dirname | xargs dirname); fi
+else AISCIENTIST_ROOT=$(find ".claude/plugins" "$HOME/.claude/plugins/cache" "$HOME/.claude/plugins" -maxdepth 8 -name "verify_setup.py" -path "*ai-scientist*" 2>/dev/null | head -1 | xargs dirname | xargs dirname); fi
 export AISCIENTIST_ROOT; if [ -z "$AISCIENTIST_ROOT" ]; then echo "ERROR: Could not find ai-scientist-skills plugin root. Install with: claude plugin marketplace add stamate/ai-scientist-skills"; fi; echo "Plugin root: $AISCIENTIST_ROOT"
 ```
 
@@ -138,7 +138,7 @@ Each idea should:
 
 First, check if the claude-scientific-skills plugin is actually installed:
 ```bash
-find "$HOME/.claude/plugins" ".claude/plugins" -maxdepth 8 -name "SKILL.md" -path "*research-lookup*" 2>/dev/null | head -1 | grep -q . && echo "SCIENTIFIC_PLUGIN_OK" || echo "SCIENTIFIC_PLUGIN_MISSING"
+find "$HOME/.claude/plugins/cache" "$HOME/.claude/plugins" ".claude/plugins" -maxdepth 8 -name "SKILL.md" -path "*research-lookup*" 2>/dev/null | head -1 | grep -q . && echo "SCIENTIFIC_PLUGIN_OK" || echo "SCIENTIFIC_PLUGIN_MISSING"
 ```
 If `SCIENTIFIC_PLUGIN_MISSING`, skip this entire section silently.
 

@@ -35,7 +35,7 @@ When called from the orchestrator, map `--type` to `--venue`:
 
 ```bash
 if [ -f "tools/verify_setup.py" ]; then AISCIENTIST_ROOT="$(pwd)"
-else AISCIENTIST_ROOT=$(find ".claude/plugins" "$HOME/.claude/plugins" -maxdepth 8 -name "verify_setup.py" -path "*ai-scientist*" 2>/dev/null | head -1 | xargs dirname | xargs dirname); fi
+else AISCIENTIST_ROOT=$(find ".claude/plugins" "$HOME/.claude/plugins/cache" "$HOME/.claude/plugins" -maxdepth 8 -name "verify_setup.py" -path "*ai-scientist*" 2>/dev/null | head -1 | xargs dirname | xargs dirname); fi
 export AISCIENTIST_ROOT; if [ -z "$AISCIENTIST_ROOT" ]; then echo "ERROR: Could not find ai-scientist-skills plugin root. Install with: claude plugin marketplace add stamate/ai-scientist-skills"; fi; echo "Plugin root: $AISCIENTIST_ROOT"
 ```
 
@@ -49,7 +49,7 @@ which codex 2>/dev/null && echo "CLI_OK" || echo "CLI_MISSING"
 
 Also verify the Claude Code plugin is registered and Codex is authenticated:
 ```bash
-(find "$HOME/.claude/plugins" ".claude/plugins" -maxdepth 5 -path "*stamate-codex*" -o -path "*codex-plugin-cc*" 2>/dev/null | head -1 | grep -q .) && echo "PLUGIN_OK" || echo "PLUGIN_MISSING"
+(find "$HOME/.claude/plugins/cache" "$HOME/.claude/plugins" ".claude/plugins" -maxdepth 5 -path "*stamate-codex*" -o -path "*codex-plugin-cc*" 2>/dev/null | head -1 | grep -q .) && echo "PLUGIN_OK" || echo "PLUGIN_MISSING"
 codex login status 2>/dev/null && echo "AUTH_OK" || echo "AUTH_MISSING"
 ```
 
