@@ -330,14 +330,17 @@ Examples:
                 ok(f"Found {plugin_req}")
                 uv = shutil.which("uv")
                 if uv:
-                    # Try venv install, then system install
-                    for extra in [[], ["--system"]]:
-                        r = run([uv, "pip", "install", *extra, "-r", str(plugin_req)])
-                        if r.returncode == 0:
-                            ok(f"Installed via uv{' (--system)' if extra else ''}")
-                            break
+                    # Ensure a venv exists in the user's project directory
+                    venv_path = Path.cwd() / ".venv"
+                    if not venv_path.exists():
+                        print(f"  Creating virtual environment at {venv_path}")
+                        run([uv, "venv", str(venv_path)])
+                    # Install into the project's venv
+                    r = run([uv, "pip", "install", "-r", str(plugin_req)])
+                    if r.returncode == 0:
+                        ok("Installed into project .venv/")
                     else:
-                        warn(f"Could not install deps. Run manually: uv pip install -r {plugin_req}")
+                        warn(f"Install failed. Run manually: uv pip install -r {plugin_req}")
                 else:
                     warn("uv not found for dep install. Run: pip install -r " + str(plugin_req))
             else:
