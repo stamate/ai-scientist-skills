@@ -174,29 +174,31 @@ A template is also available at `examples/workshop_template.md` if you prefer to
 
 ## Skills Reference
 
-8 skills covering the complete research lifecycle.
+12 skills covering the complete research lifecycle.
 
 ### Pipeline Orchestration
 
 | Type | Skill | Description |
 |------|-------|-------------|
-| Orchestrator | `/ai-scientist` | Full pipeline: ideation → experiment → plot → writeup → review. |
+| Orchestrator | `/ai-scientist` | Full pipeline: ideation → experiment → plot → writeup → review → optional revision loop. Supports `--dry-run` and `--revision-passes N`. |
 
 ### Research & Experimentation
 
 | Type | Skill | Description |
 |------|-------|-------------|
-| Skill | `/ai-scientist:ideation` | Generate novel research ideas with literature search and novelty checking. |
-| Skill | `/ai-scientist:experiment` | 4-stage BFTS experiment orchestrator with parallel agent exploration. |
+| Skill | `/ai-scientist:ideation` | Generate novel research ideas with parallel literature search (S2 + optional 78+ databases). |
+| Skill | `/ai-scientist:experiment` | 4-stage BFTS experiment orchestrator with parallel agents, deduplication, and structured logs. |
 | Internal | `/ai-scientist:experiment-step` | Single BFTS iteration: generate code, execute, parse metrics, analyze plots. |
-| Skill | `/ai-scientist:plot` | Aggregate publication-quality figures from experiment results. |
+| Internal | `/ai-scientist:experiment-generate` | Code generation only (pairs with experiment-execute for failure recovery). |
+| Internal | `/ai-scientist:experiment-execute` | Execution only — run previously generated code, parse metrics, record node. |
+| Skill | `/ai-scientist:plot` | Aggregate publication-quality figures with optional journal-specific formatting. |
 
 ### Writing & Review
 
 | Type | Skill | Description |
 |------|-------|-------------|
-| Skill | `/ai-scientist:writeup` | Generate LaTeX paper with automated citation gathering and iterative refinement. |
-| Skill | `/ai-scientist:review` | Structured peer review with NeurIPS-format scoring and figure assessment. |
+| Skill | `/ai-scientist:writeup` | Generate LaTeX paper with automated citation gathering, IMRAD structure, and DOI verification. |
+| Skill | `/ai-scientist:review` | Structured peer review with NeurIPS-format scoring, evidence assessment, and optional Codex panel. |
 | Optional | `/ai-scientist:codex-review` | Codex panel review + code-methods alignment (requires codex-plugin-cc). |
 
 ### Utilities
@@ -231,13 +233,15 @@ All tools are invoked via `uv run python3 tools/<module>.py` from the project ro
 
 | Tool | Purpose |
 |------|---------|
-| `config.py` | Load and merge YAML configuration with CLI overrides. |
-| `device_utils.py` | Auto-detect CUDA / MPS / CPU; generate device preamble for experiment code. |
+| `config.py` | Load and merge YAML configuration with CLI overrides (`--set key=value`). |
+| `device_utils.py` | Auto-detect CUDA / MPS / CPU; generate device preamble with `SEED` env var support. |
 | `search.py` | Semantic Scholar API with bibtex + graceful fallback for WebSearch. |
-| `state_manager.py` | JSON-based experiment state: journal, node tree, stage transitions. |
+| `state_manager.py` | JSON-based experiment state: journal, node tree, stage transitions, dedup check, structured logs. |
 | `metric_parser.py` | Extract metrics from experiment stdout; supports old and new metric formats. |
 | `latex_compiler.py` | Cross-platform pdflatex/bibtex compilation with error extraction. |
 | `pdf_reader.py` | PDF text extraction via pymupdf4llm / PyMuPDF / pypdf. |
+| `budget_estimator.py` | Estimate token usage and cost before running the pipeline. |
+| `verify_setup.py` | Validate all prerequisites (Python, PyTorch, LaTeX, Claude, Codex, scientific skills). |
 
 ## Project Structure
 
@@ -245,25 +249,32 @@ All tools are invoked via `uv run python3 tools/<module>.py` from the project ro
 ai-scientist-skills/
 ├── .claude-plugin/
 │   └── plugin.json            # Agent Skills plugin manifest
-├── skills/                    # 8 skills (Agent Skills standard)
-│   ├── ai-scientist/SKILL.md   #   Main orchestrator
-│   ├── ideation/SKILL.md      #   Research idea generation
+├── skills/                    # 12 skills (Agent Skills standard)
+│   ├── ai-scientist/SKILL.md   #   Main orchestrator (dry-run, revision loop)
+│   ├── ideation/SKILL.md      #   Research idea generation (parallel lit search)
 │   ├── experiment/SKILL.md    #   4-stage BFTS pipeline
-│   ├── experiment-step/SKILL.md #  Single BFTS iteration
+│   ├── experiment-step/SKILL.md #  Single BFTS iteration (dedup, structured logs)
+│   ├── experiment-generate/    #   Code generation only (split from step)
+│   ├── experiment-execute/     #   Execution only (split from step)
 │   ├── plot/SKILL.md          #   Figure aggregation
 │   ├── writeup/SKILL.md       #   LaTeX paper generation
-│   ├── review/SKILL.md        #   Peer review
+│   ├── review/SKILL.md        #   Peer review + evidence assessment
+│   ├── codex-review/SKILL.md  #   Codex panel review (optional)
 │   ├── lit-search/SKILL.md    #   Literature search
 │   └── workshop/SKILL.md     #   Workshop description creator
-├── tools/                     # Python utilities
+├── tools/                     # Python utilities (all via uv run python3)
 │   ├── verify_setup.py        #   Environment verification
 │   ├── config.py              #   Configuration loading
-│   ├── device_utils.py        #   CUDA / MPS / CPU detection
+│   ├── device_utils.py        #   CUDA / MPS / CPU + SEED env var
 │   ├── search.py              #   Literature search (S2 + WebSearch)
-│   ├── state_manager.py       #   Experiment state persistence
+│   ├── state_manager.py       #   Experiment state, dedup, structured logs
 │   ├── metric_parser.py       #   Metric extraction from stdout
 │   ├── latex_compiler.py      #   pdflatex / bibtex wrapper
-│   └── pdf_reader.py          #   PDF text extraction
+│   ├── pdf_reader.py          #   PDF text extraction
+│   └── budget_estimator.py    #   Token usage / cost estimation
+├── scripts/
+│   ├── setup.py               #   One-command install (uv run from URL)
+│   └── pre-commit-check.py    #   Validate skills, config, step numbering
 ├── templates/
 │   ├── latex/icml/             #   8-page ICML 2025 template
 │   ├── latex/icbinb/           #   4-page ICBINB workshop template
@@ -302,13 +313,41 @@ writeup_type: icbinb       # "icbinb" (4-page) or "icml" (8-page)
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `S2_API_KEY` | No | Semantic Scholar API key for higher rate limits. Falls back to unauthenticated access or WebSearch. |
+| `SEED` | No | Random seed for experiment reproducibility (default: 42). Used by multi-seed evaluation: `SEED=123 uv run python3 runfile.py`. |
+
+### New Pipeline Features
+
+| Feature | Flag | Description |
+|---------|------|-------------|
+| **Dry run** | `--dry-run` | Validate environment and config without running experiments. |
+| **Revision loop** | `--revision-passes N` | Re-review and revise paper up to N times if score < threshold. |
+| **Budget estimate** | `uv run python3 tools/budget_estimator.py` | Estimate token usage and cost before running. |
+| **Pre-commit check** | `uv run scripts/pre-commit-check.py` | Validate SKILL.md files, config, step numbering. |
+| **Deduplication** | Automatic | Content-hash check skips re-executing identical experiment code. |
+| **Structured logs** | Automatic | JSON log per experiment node in `logs/structured/`. |
+| **Parallel lit search** | Automatic | S2 + research-lookup + paper-lookup run as parallel agents. |
+
+### Revision Loop
+
+Enable automatic paper revision when review scores are low:
+
+```yaml
+revision:
+  enabled: true                # opt-in
+  score_threshold: 5           # revise if Overall < 5
+  max_passes: 2                # max revision cycles
+  prompt_before_revision: true # ask before each pass
+```
+
+Or pass `--revision-passes 3` to the orchestrator for one-off override.
 
 ### Scientific Skills Integration (Optional)
 
 Install the [claude-scientific-skills](https://github.com/stamate/claude-scientific-skills) plugin for enhanced research capabilities:
 
 ```bash
-claude install gh:stamate/claude-scientific-skills
+claude plugin marketplace add stamate/claude-scientific-skills
+claude plugin install scientific-skills@claude-scientific-skills
 ```
 
 When scientific skills are available, the pipeline automatically:
@@ -329,7 +368,8 @@ scientific_skills:
 Install the [codex-plugin-cc](https://github.com/stamate/codex-plugin-cc) plugin for enhanced reviews:
 
 ```bash
-claude install gh:stamate/codex-plugin-cc
+claude plugin marketplace add stamate/codex-plugin-cc
+claude plugin install codex@stamate-codex
 npm install -g @openai/codex
 codex login
 ```
@@ -362,6 +402,11 @@ codex:
 | Enhanced review | — | Optional Codex panel (3 personas + synthesis) |
 | Literature databases | Semantic Scholar only | Optional 78+ databases via scientific-skills |
 | Citation verification | None | Optional DOI validation via CrossRef |
+| Reproducibility | Manual seed management | `SEED` env var, automatic multi-seed validation |
+| Cost visibility | None | Token budget estimator before execution |
+| Revision loop | None | Automatic write → review → revise → re-review |
+| Experiment dedup | None | Content-hash skips re-executing identical code |
+| Package manager | pip | uv (all invocations via `uv run python3`) |
 
 ## License
 
