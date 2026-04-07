@@ -17,13 +17,22 @@ Parse from the user's message.
 
 ## Procedure
 
+### 0. Locate Plugin Root
+
+```bash
+if [ -f "tools/verify_setup.py" ]; then AISCIENTIST_ROOT="$(pwd)"
+elif [ -f "$HOME/.claude/plugins/marketplaces/ai-scientist-skills/tools/verify_setup.py" ]; then AISCIENTIST_ROOT="$HOME/.claude/plugins/marketplaces/ai-scientist-skills"
+else AISCIENTIST_ROOT=$(find "$HOME/.claude/plugins" -maxdepth 8 -name "verify_setup.py" -path "*ai-scientist*" 2>/dev/null | head -1 | xargs dirname | xargs dirname); fi
+echo "Plugin root: $AISCIENTIST_ROOT"
+```
+
 ### 1. Load Experiment Context
 
 Read the experiment state and gather all stage summaries:
 ```bash
 uv run python3 -c "
 import json, sys, os
-sys.path.insert(0, '.')
+sys.path.insert(0, os.environ.get('AISCIENTIST_ROOT', '.'))
 from tools.state_manager import load_experiment_state, load_journal, get_best_node, get_journal_summary
 state = load_experiment_state('<exp_dir>')
 for stage in ['stage1_initial', 'stage2_baseline', 'stage3_creative', 'stage4_ablation']:
@@ -126,7 +135,7 @@ If `SCIENTIFIC_PLUGIN_MISSING`, skip this entire section silently.
 Then check config (if experiment config is available):
 ```bash
 uv run python3 -c "
-import yaml
+import yaml, os, sys; sys.path.insert(0, os.environ.get('AISCIENTIST_ROOT', '.'))
 try:
     cfg = yaml.safe_load(open('<exp_dir>/config.yaml'))
     enabled = str(cfg.get('scientific_skills', {}).get('enabled', 'auto')).lower()

@@ -17,11 +17,20 @@ You execute a previously generated experiment script, parse its output, and reco
 
 ## Procedure
 
+### 0. Locate Plugin Root
+
+```bash
+if [ -f "tools/verify_setup.py" ]; then AISCIENTIST_ROOT="$(pwd)"
+elif [ -f "$HOME/.claude/plugins/marketplaces/ai-scientist-skills/tools/verify_setup.py" ]; then AISCIENTIST_ROOT="$HOME/.claude/plugins/marketplaces/ai-scientist-skills"
+else AISCIENTIST_ROOT=$(find "$HOME/.claude/plugins" -maxdepth 8 -name "verify_setup.py" -path "*ai-scientist*" 2>/dev/null | head -1 | xargs dirname | xargs dirname); fi
+echo "Plugin root: $AISCIENTIST_ROOT"
+```
+
 ### 1. Execute Code
 
 Determine step number from journal:
 ```bash
-uv run python3 tools/state_manager.py journal-summary <exp_dir> <stage>
+uv run python3 "$AISCIENTIST_ROOT/tools/state_manager.py" journal-summary <exp_dir> <stage>
 ```
 
 Run the previously generated code:
@@ -32,7 +41,7 @@ cd <exp_dir>/workspace && timeout 3600 uv run python3 runfile.py 2>&1 | tee <exp
 ### 2. Parse Metrics
 
 ```bash
-uv run python3 tools/metric_parser.py <exp_dir>/logs/step_<N>_output.txt --json
+uv run python3 "$AISCIENTIST_ROOT/tools/metric_parser.py" <exp_dir>/logs/step_<N>_output.txt --json
 ```
 
 ### 3. Analyze Plots
@@ -46,7 +55,7 @@ Buggy if: exception raised, no valid metrics, timeout, NaN/Inf in metrics.
 ### 5. Save Node
 
 ```bash
-uv run python3 tools/state_manager.py add-node <exp_dir> <stage> \
+uv run python3 "$AISCIENTIST_ROOT/tools/state_manager.py" add-node <exp_dir> <stage> \
     --plan "<plan>" \
     --code <exp_dir>/workspace/runfile.py \
     --output-log <exp_dir>/logs/step_<N>_output.txt \

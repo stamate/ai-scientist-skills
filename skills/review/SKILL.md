@@ -20,15 +20,24 @@ Parse from the user's message.
 
 ## Procedure
 
+### 0. Locate Plugin Root
+
+```bash
+if [ -f "tools/verify_setup.py" ]; then AISCIENTIST_ROOT="$(pwd)"
+elif [ -f "$HOME/.claude/plugins/marketplaces/ai-scientist-skills/tools/verify_setup.py" ]; then AISCIENTIST_ROOT="$HOME/.claude/plugins/marketplaces/ai-scientist-skills"
+else AISCIENTIST_ROOT=$(find "$HOME/.claude/plugins" -maxdepth 8 -name "verify_setup.py" -path "*ai-scientist*" 2>/dev/null | head -1 | xargs dirname | xargs dirname); fi
+echo "Plugin root: $AISCIENTIST_ROOT"
+```
+
 ### 1. Extract Paper Text
 
 ```bash
-uv run python3 tools/pdf_reader.py <pdf_path>
+uv run python3 "$AISCIENTIST_ROOT/tools/pdf_reader.py" <pdf_path>
 ```
 
 If the paper is long, also extract by sections:
 ```bash
-uv run python3 tools/pdf_reader.py <pdf_path> --sections
+uv run python3 "$AISCIENTIST_ROOT/tools/pdf_reader.py" <pdf_path> --sections
 ```
 
 ### 2. Load Review Examples
@@ -184,7 +193,7 @@ If `SCIENTIFIC_PLUGIN_MISSING`, skip this entire step silently.
 Then check config (if `--exp-dir` is provided):
 ```bash
 uv run python3 -c "
-import yaml
+import yaml, os, sys; sys.path.insert(0, os.environ.get('AISCIENTIST_ROOT', '.'))
 try:
     cfg = yaml.safe_load(open('<exp_dir>/config.yaml'))
     enabled = str(cfg.get('scientific_skills', {}).get('enabled', 'auto')).lower()
@@ -238,7 +247,7 @@ If `CODEX_AVAILABLE`, enhance the review with a Codex panel:
 
 1. **Read Codex config values** from the experiment's config (if `--exp-dir` provided):
    ```bash
-   uv run python3 tools/config.py --config <exp_dir>/config.yaml 2>/dev/null
+   uv run python3 "$AISCIENTIST_ROOT/tools/config.py" --config <exp_dir>/config.yaml 2>/dev/null
    ```
    Extract:
    - `codex.enabled` — if `"false"`, **skip this entire step** even if the CLI is on PATH
@@ -252,10 +261,10 @@ If `CODEX_AVAILABLE`, enhance the review with a Codex panel:
 
    If `codex.code_alignment` is `true` and `--exp-dir` is provided, save the promoted best solution to a known path and use that:
    ```bash
-   uv run python3 tools/state_manager.py save-best <exp_dir> stage4_ablation 2>/dev/null || \
-   uv run python3 tools/state_manager.py save-best <exp_dir> stage3_creative 2>/dev/null || \
-   uv run python3 tools/state_manager.py save-best <exp_dir> stage2_baseline 2>/dev/null || \
-   uv run python3 tools/state_manager.py save-best <exp_dir> stage1_initial
+   uv run python3 "$AISCIENTIST_ROOT/tools/state_manager.py" save-best <exp_dir> stage4_ablation 2>/dev/null || \
+   uv run python3 "$AISCIENTIST_ROOT/tools/state_manager.py" save-best <exp_dir> stage3_creative 2>/dev/null || \
+   uv run python3 "$AISCIENTIST_ROOT/tools/state_manager.py" save-best <exp_dir> stage2_baseline 2>/dev/null || \
+   uv run python3 "$AISCIENTIST_ROOT/tools/state_manager.py" save-best <exp_dir> stage1_initial
    ```
    This writes `best_solution_<id>.py` to the stage's state directory and prints the file path. Use the printed directory (e.g., `<exp_dir>/state/stage4_ablation/`) as `<best_solution_dir>`.
 

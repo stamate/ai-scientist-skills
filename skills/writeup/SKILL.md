@@ -20,6 +20,15 @@ Parse from the user's message.
 
 ## Procedure
 
+### 0. Locate Plugin Root
+
+```bash
+if [ -f "tools/verify_setup.py" ]; then AISCIENTIST_ROOT="$(pwd)"
+elif [ -f "$HOME/.claude/plugins/marketplaces/ai-scientist-skills/tools/verify_setup.py" ]; then AISCIENTIST_ROOT="$HOME/.claude/plugins/marketplaces/ai-scientist-skills"
+else AISCIENTIST_ROOT=$(find "$HOME/.claude/plugins" -maxdepth 8 -name "verify_setup.py" -path "*ai-scientist*" 2>/dev/null | head -1 | xargs dirname | xargs dirname); fi
+echo "Plugin root: $AISCIENTIST_ROOT"
+```
+
 ### 1. Load Experiment Context
 
 Read the experiment artifacts:
@@ -29,8 +38,8 @@ cat <exp_dir>/idea.md
 
 # Experiment state
 uv run python3 -c "
-import json, sys
-sys.path.insert(0, '.')
+import json, sys, os
+sys.path.insert(0, os.environ.get('AISCIENTIST_ROOT', '.'))
 from tools.state_manager import load_experiment_state
 state = load_experiment_state('<exp_dir>')
 print(json.dumps(state, indent=2))
@@ -42,7 +51,7 @@ Read the best experiment code from the final completed stage. Read stage summari
 ### 2. Setup LaTeX Directory
 
 ```bash
-uv run python3 tools/latex_compiler.py setup <exp_dir>/latex --type <icbinb|icml>
+uv run python3 "$AISCIENTIST_ROOT/tools/latex_compiler.py" setup <exp_dir>/latex --type <icbinb|icml>
 ```
 
 Create empty references file:
@@ -60,7 +69,7 @@ cp <exp_dir>/figures/*.png <exp_dir>/figures/*.pdf <exp_dir>/latex/figures/ 2>/d
 
 First, check search backend availability:
 ```bash
-uv run python3 tools/search.py check
+uv run python3 "$AISCIENTIST_ROOT/tools/search.py" check
 ```
 
 If S2 API is unreachable or rate-limited, **use WebSearch exclusively** for all citation searches below. Do not waste rounds retrying a broken S2 backend.
@@ -71,7 +80,7 @@ For each round:
 2. Formulate 2-3 targeted search queries for the needed citations
 3. Search for papers — try S2 first, fall back to WebSearch immediately on failure:
    ```bash
-   uv run python3 tools/search.py "<citation query>" --limit 5 --json
+   uv run python3 "$AISCIENTIST_ROOT/tools/search.py" "<citation query>" --limit 5 --json
    ```
    If this returns no results or exits with error, use **WebSearch** to search `arxiv.org`, `scholar.google.com`, or `semanticscholar.org` directly. Extract title, authors, year, venue from the search results.
 
@@ -145,12 +154,12 @@ Same structure plus:
 ### 6. Compile and Check
 
 ```bash
-uv run python3 tools/latex_compiler.py compile <exp_dir>/latex --main template.tex
+uv run python3 "$AISCIENTIST_ROOT/tools/latex_compiler.py" compile <exp_dir>/latex --main template.tex
 ```
 
 Check for errors:
 ```bash
-uv run python3 tools/latex_compiler.py pages <exp_dir>/latex/template.pdf
+uv run python3 "$AISCIENTIST_ROOT/tools/latex_compiler.py" pages <exp_dir>/latex/template.pdf
 ```
 
 If there are LaTeX errors, read the log file and fix them:
@@ -200,7 +209,7 @@ If `SCIENTIFIC_PLUGIN_MISSING`, skip this entire section silently.
 Then check config:
 ```bash
 uv run python3 -c "
-import yaml
+import yaml, os, sys; sys.path.insert(0, os.environ.get('AISCIENTIST_ROOT', '.'))
 try:
     cfg = yaml.safe_load(open('<exp_dir>/config.yaml'))
     enabled = str(cfg.get('scientific_skills', {}).get('enabled', 'auto')).lower()

@@ -14,21 +14,30 @@ Same as experiment-step: `--exp-dir`, `--stage`, `--parent-id`, `--action`, `--t
 
 ## Procedure
 
+### 0. Locate Plugin Root
+
+```bash
+if [ -f "tools/verify_setup.py" ]; then AISCIENTIST_ROOT="$(pwd)"
+elif [ -f "$HOME/.claude/plugins/marketplaces/ai-scientist-skills/tools/verify_setup.py" ]; then AISCIENTIST_ROOT="$HOME/.claude/plugins/marketplaces/ai-scientist-skills"
+else AISCIENTIST_ROOT=$(find "$HOME/.claude/plugins" -maxdepth 8 -name "verify_setup.py" -path "*ai-scientist*" 2>/dev/null | head -1 | xargs dirname | xargs dirname); fi
+echo "Plugin root: $AISCIENTIST_ROOT"
+```
+
 ### 1. Load Context
 
 ```bash
-uv run python3 tools/state_manager.py journal-summary <exp_dir> <stage>
+uv run python3 "$AISCIENTIST_ROOT/tools/state_manager.py" journal-summary <exp_dir> <stage>
 ```
 
 If parent node ID provided:
 ```bash
-uv run python3 tools/state_manager.py node-info <exp_dir> <stage> <parent_id> --show-code
+uv run python3 "$AISCIENTIST_ROOT/tools/state_manager.py" node-info <exp_dir> <stage> <parent_id> --show-code
 ```
 
 ### 2. Detect Device
 
 ```bash
-uv run python3 tools/device_utils.py --preamble
+uv run python3 "$AISCIENTIST_ROOT/tools/device_utils.py" --preamble
 ```
 
 ### 3. Generate Code
@@ -47,7 +56,7 @@ mkdir -p <exp_dir>/workspace/figures
 ### 5. Check for Duplicates
 
 ```bash
-uv run python3 tools/state_manager.py dedup-check <exp_dir> <stage> --code <exp_dir>/workspace/runfile.py
+uv run python3 "$AISCIENTIST_ROOT/tools/state_manager.py" dedup-check <exp_dir> <stage> --code <exp_dir>/workspace/runfile.py
 ```
 
 If duplicate found, report it and skip — no need to execute.

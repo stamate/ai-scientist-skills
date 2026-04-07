@@ -21,6 +21,15 @@ Parse these from the user's message.
 
 ## Procedure
 
+### 0. Locate Plugin Root
+
+```bash
+if [ -f "tools/verify_setup.py" ]; then AISCIENTIST_ROOT="$(pwd)"
+elif [ -f "$HOME/.claude/plugins/marketplaces/ai-scientist-skills/tools/verify_setup.py" ]; then AISCIENTIST_ROOT="$HOME/.claude/plugins/marketplaces/ai-scientist-skills"
+else AISCIENTIST_ROOT=$(find "$HOME/.claude/plugins" -maxdepth 8 -name "verify_setup.py" -path "*ai-scientist*" 2>/dev/null | head -1 | xargs dirname | xargs dirname); fi
+echo "Plugin root: $AISCIENTIST_ROOT"
+```
+
 ### 1. Load Context
 
 Read the workshop/topic description file. It should contain:
@@ -45,7 +54,7 @@ Think of a novel research direction within the workshop scope. Consider:
 
 Before finalizing, search for related work to check novelty:
 ```bash
-uv run python3 tools/search.py "<your proposed topic keywords>" --limit 10 --json
+uv run python3 "$AISCIENTIST_ROOT/tools/search.py" "<your proposed topic keywords>" --limit 10 --json
 ```
 
 If S2 returns no results, use the WebSearch tool to search `arxiv.org` for related papers.
@@ -99,8 +108,8 @@ Collect all ideas into a JSON array and save to the output file:
 Also validate against the schema:
 ```bash
 uv run python3 -c "
-import json
-with open('templates/idea_schema.json') as f:
+import json, os
+with open(os.path.join(os.environ.get('AISCIENTIST_ROOT', '.'), 'templates', 'idea_schema.json')) as f:
     schema = json.load(f)
 # Basic validation of required fields
 required = schema['required']
@@ -137,7 +146,8 @@ If `SCIENTIFIC_PLUGIN_MISSING`, skip this entire section silently.
 Then check if the feature is enabled in the active config (use `--config` path if provided, else default):
 ```bash
 uv run python3 -c "
-import yaml
+import yaml, os
+_root = os.environ.get('AISCIENTIST_ROOT', '.')
 try:
     cfg = yaml.safe_load(open('<config_path_or_templates/bfts_config.yaml>'))
     enabled = str(cfg.get('scientific_skills', {}).get('enabled', 'auto')).lower()
@@ -147,13 +157,13 @@ try:
 except: print('scientific_skills.enabled=auto\nscientific_skills.enhanced_literature=True')
 " 2>/dev/null
 ```
-Where `<config_path_or_templates/bfts_config.yaml>` is the `--config` argument if provided, otherwise `templates/bfts_config.yaml`.
+Where `<config_path_or_templates/bfts_config.yaml>` is the `--config` argument if provided, otherwise `"$AISCIENTIST_ROOT/templates/bfts_config.yaml"`.
 If `enabled` is `false` or `enhanced_literature` is `false`, skip this section.
 
 When enabled, run all available search backends in parallel using Agent subagents for faster results:
 
 ```
-Agent 1: uv run python3 tools/search.py "<topic keywords>" --limit 10 --json
+Agent 1: uv run python3 "$AISCIENTIST_ROOT/tools/search.py" "<topic keywords>" --limit 10 --json
 Agent 2: /research-lookup "<topic keywords and hypothesis>"
 Agent 3: /paper-lookup "<specific query>" (if available — skip silently if not)
 ```

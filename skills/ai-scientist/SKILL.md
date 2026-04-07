@@ -42,9 +42,25 @@ Parse from the user's message. If none of `--workshop`, `--idea`, or `--exp-dir`
 
 ### Phase 0: Setup
 
+0. **Locate plugin root** (required before any tool invocations):
+   ```bash
+   # Try CWD first (cloned repo), then marketplace, then search
+   if [ -f "tools/verify_setup.py" ]; then
+       AISCIENTIST_ROOT="$(pwd)"
+   elif [ -f "$HOME/.claude/plugins/marketplaces/ai-scientist-skills/tools/verify_setup.py" ]; then
+       AISCIENTIST_ROOT="$HOME/.claude/plugins/marketplaces/ai-scientist-skills"
+   else
+       AISCIENTIST_ROOT=$(find "$HOME/.claude/plugins" ".claude/plugins" -maxdepth 8 -name "verify_setup.py" -path "*ai-scientist*" 2>/dev/null | head -1 | xargs dirname | xargs dirname)
+   fi
+   echo "AI Scientist root: $AISCIENTIST_ROOT"
+   ```
+   **All subsequent `tools/` references in this skill and sub-skills must use `"$AISCIENTIST_ROOT/tools/"`** instead of bare `tools/`. Similarly, `templates/` becomes `"$AISCIENTIST_ROOT/templates/"`.
+
+   Store this path — pass it to sub-skills as `--plugin-root "$AISCIENTIST_ROOT"` or set it before each Bash command.
+
 1. **Verify environment**:
    ```bash
-   uv run python3 tools/verify_setup.py
+   uv run python3 "$AISCIENTIST_ROOT/tools/verify_setup.py"
    ```
    If this fails (missing dependencies, wrong Python version, etc.), **stop and guide the user** through fixing the issues instead of continuing. Common problems:
    - `python: command not found` → tell the user to use `python3` or activate a virtualenv
@@ -53,17 +69,17 @@ Parse from the user's message. If none of `--workshop`, `--idea`, or `--exp-dir`
 
 2. **Detect device**:
    ```bash
-   uv run python3 tools/device_utils.py --info
+   uv run python3 "$AISCIENTIST_ROOT/tools/device_utils.py" --info
    ```
 
 3. **Load configuration**:
    ```bash
-   uv run python3 tools/config.py --config <config_path>
+   uv run python3 "$AISCIENTIST_ROOT/tools/config.py" --config <config_path>
    ```
 
 4. **Check LaTeX** (optional, only needed for writeup):
    ```bash
-   uv run python3 tools/latex_compiler.py check
+   uv run python3 "$AISCIENTIST_ROOT/tools/latex_compiler.py" check
    ```
    Warn if pdflatex or bibtex is missing — the experiment can still run, paper generation will be skipped.
 
@@ -121,15 +137,15 @@ Parse from the user's message. If none of `--workshop`, `--idea`, or `--exp-dir`
 3. If `--idea` provided, validate the idea JSON has required fields per `templates/idea_schema.json`
 4. Test S2 API connectivity:
    ```bash
-   uv run python3 tools/search.py check
+   uv run python3 "$AISCIENTIST_ROOT/tools/search.py" check
    ```
 5. Test LaTeX compilation with a minimal document:
    ```bash
-   uv run python3 tools/latex_compiler.py check
+   uv run python3 "$AISCIENTIST_ROOT/tools/latex_compiler.py" check
    ```
 6. Report estimated token budget (if budget_estimator.py exists):
    ```bash
-   uv run python3 tools/budget_estimator.py --config <config_path> 2>/dev/null || echo "Budget estimator not available"
+   uv run python3 "$AISCIENTIST_ROOT/tools/budget_estimator.py" --config <config_path> 2>/dev/null || echo "Budget estimator not available"
    ```
 7. Print summary:
    ```
@@ -352,5 +368,5 @@ The pipeline supports resuming at any phase:
 - For a quick test run, use `--config` with reduced iterations:
   ```bash
   # Create a test config with fewer iterations
-  uv run python3 tools/config.py --set agent.stages.stage1_max_iters=5 agent.stages.stage2_max_iters=3 agent.stages.stage3_max_iters=3 agent.stages.stage4_max_iters=3
+  uv run python3 "$AISCIENTIST_ROOT/tools/config.py" --set agent.stages.stage1_max_iters=5 agent.stages.stage2_max_iters=3 agent.stages.stage3_max_iters=3 agent.stages.stage4_max_iters=3
   ```
