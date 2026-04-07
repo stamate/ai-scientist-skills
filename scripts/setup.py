@@ -240,11 +240,8 @@ Examples:
   # Install plugins globally (available everywhere):
   uv run {url}
 
-  # Install plugins into current project only:
+  # Full project setup (clone repo + plugins + Python deps + .venv):
   uv run {url} --project
-
-  # Clone repo + project-scoped install + Python deps:
-  uv run {url} --local
 
   # Just check what's installed:
   uv run {url} --check
@@ -252,12 +249,8 @@ Examples:
     )
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument(
-        "--local", action="store_true",
-        help="Clone repo here + install plugins at project scope + Python deps",
-    )
-    mode.add_argument(
-        "--project", action="store_true",
-        help="Install plugins at project scope (.claude/plugins/ in cwd)",
+        "--local", "--project", action="store_true", dest="project",
+        help="Clone repo into current directory + project-scoped plugins + .venv + Python deps",
     )
     mode.add_argument("--deps", action="store_true", help="Python deps only (needs local repo)")
     mode.add_argument("--check", action="store_true", help="Verify installation")
@@ -278,16 +271,11 @@ Examples:
         install_python_deps(project_root)
         return
 
-    # Determine scope
-    if args.local or args.project:
-        scope = "project"
-    else:
-        scope = "user"
-
+    scope = "project" if args.project else "user"
     success = True
 
-    if args.local:
-        # Clone + project-scoped install
+    if args.project:
+        # Full project setup: clone + plugins + venv + Python deps
         target = Path.cwd() / "ai-scientist-skills"
         if project_root:
             print(f"  Already in repo at {project_root}")
@@ -295,7 +283,7 @@ Examples:
         else:
             if not clone_repo(target):
                 sys.exit(1)
-        # cd into the clone so project-scoped plugins install into clone/.claude/plugins/
+        # cd into the clone so project-scoped plugins install correctly
         os.chdir(target)
         install_python_deps(target)
         if not install_all_plugins(scope):
@@ -303,68 +291,27 @@ Examples:
         install_codex_cli()
         verify(target)
     else:
-        # Plugin install (user or project scope)
+        # Global install: plugins only (no clone, no venv)
         if not install_all_plugins(scope):
             success = False
         install_codex_cli()
-
-        # Try to install Python deps from the plugin's requirements.txt
-        step("Python dependencies")
-        if project_root:
-            install_python_deps(project_root)
-        else:
-            # Find requirements.txt in the installed plugin directory
-            plugin_req = None
-            for search_root in [Path.home() / ".claude" / "plugins", Path(".claude") / "plugins"]:
-                if not search_root.exists():
-                    continue
-                try:
-                    result = run(["find", str(search_root), "-maxdepth", "6",
-                                  "-name", "requirements.txt", "-path", "*ai-scientist*"])
-                    if result.stdout.strip():
-                        plugin_req = Path(result.stdout.strip().splitlines()[0])
-                        break
-                except Exception:
-                    pass
-            if plugin_req and plugin_req.exists():
-                ok(f"Found {plugin_req}")
-                uv = shutil.which("uv")
-                if uv:
-                    # Ensure a venv exists in the user's project directory
-                    venv_path = Path.cwd() / ".venv"
-                    if not venv_path.exists():
-                        print(f"  Creating virtual environment at {venv_path}")
-                        run([uv, "venv", str(venv_path)])
-                    # Install into the project's venv
-                    r = run([uv, "pip", "install", "-r", str(plugin_req)])
-                    if r.returncode == 0:
-                        ok("Installed into project .venv/")
-                    else:
-                        warn(f"Install failed. Run manually: uv pip install -r {plugin_req}")
-                else:
-                    warn("uv not found for dep install. Run: pip install -r " + str(plugin_req))
-            else:
-                warn("Could not find requirements.txt in plugin directory")
-                print(f"      Run manually: pip install pyyaml torch numpy matplotlib")
-
         verify(project_root)
 
     if success:
         print(f"\n{BOLD}=== Done ==={RESET}")
     else:
         print(f"\n{BOLD}=== Done (with errors) ==={RESET}")
-    scope_note = "project (.claude/plugins/)" if scope == "project" else "global (~/.claude/plugins/)"
-    print(f"  Scope: {scope_note}")
-    if args.local or project_root:
-        # After --local os.chdir, cwd IS the target — don't append again
-        root = project_root or (target if args.local else Path.cwd() / "ai-scientist-skills")
+
+    if args.project:
+        root = project_root or target
+        print(f"  Scope: project (repo at {root})")
         print(f"\n  Quick start:")
         print(f"    cd {root}")
         print(f"    claude '/ai-scientist --workshop examples/ideas/i_cant_believe_its_not_better.md'")
     else:
-        scope_label = "at project scope" if scope == "project" else "globally"
-        print(f"\n  Plugins installed {scope_label}. To also clone the repo:")
-        print(f"    uv run {url} --local")
+        print(f"  Scope: global (~/.claude/plugins/)")
+        print(f"\n  Plugins installed globally. For a full project setup:")
+        print(f"    uv run {url} --project")
     print()
 
     if not success:

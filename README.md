@@ -75,25 +75,19 @@ sudo apt install texlive-full
 
 ### Install
 
-**Option A — One command, global install** (recommended):
-```bash
-uv run https://raw.githubusercontent.com/stamate/ai-scientist-skills/main/scripts/setup.py
-```
-Installs all 3 Claude Code plugins globally + Codex CLI. No clone needed. Available in all projects.
-
-**Option B — Project-scoped install**:
+**Option A — Full project setup** (recommended):
 ```bash
 uv run https://raw.githubusercontent.com/stamate/ai-scientist-skills/main/scripts/setup.py --project
 ```
-Installs plugins into `.claude/plugins/` in the current directory only.
+Clones repo + installs all 3 plugins at project scope + creates `.venv/` + installs Python deps. Everything self-contained in `./ai-scientist-skills/`.
 
-**Option C — Clone + full local setup**:
+**Option B — Global install** (plugins only):
 ```bash
-uv run https://raw.githubusercontent.com/stamate/ai-scientist-skills/main/scripts/setup.py --local
+uv run https://raw.githubusercontent.com/stamate/ai-scientist-skills/main/scripts/setup.py
 ```
-Clones repo + Python deps + project-scoped plugins. Everything contained in one directory.
+Installs all 3 Claude Code plugins globally + Codex CLI. Available in all projects. No repo clone or Python deps — install those separately.
 
-**Option D — Minimal**:
+**Option C — Minimal**:
 ```bash
 claude plugin marketplace add stamate/ai-scientist-skills
 claude plugin install ai-scientist@ai-scientist-skills
