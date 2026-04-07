@@ -189,9 +189,23 @@ Report:
 
 ## Enhanced Writing (Optional — claude-scientific-skills)
 
-**Skip if** `--no-scientific-skills` is set, claude-scientific-skills plugin is not installed, or `scientific_skills.enhanced_writing` is `false` in config.
+**Skip if** `--no-scientific-skills` is set or claude-scientific-skills plugin is not installed.
 
-When the claude-scientific-skills plugin is available, enhance the writing and citation process:
+Check config before proceeding:
+```bash
+python3 -c "
+import yaml
+try:
+    cfg = yaml.safe_load(open('<exp_dir>/config.yaml'))
+    enabled = str(cfg.get('scientific_skills', {}).get('enabled', 'auto')).lower()
+    writing = cfg.get('scientific_skills', {}).get('enhanced_writing', True)
+    print(f'enabled={enabled} enhanced_writing={writing}')
+except: print('enabled=auto enhanced_writing=True')
+" 2>/dev/null
+```
+If `enabled` is `false` or `enhanced_writing` is `false`, skip this section.
+
+When enabled, enhance the writing and citation process:
 
 ### Enhanced Citation Gathering (augments Step 3)
 

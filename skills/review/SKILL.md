@@ -173,9 +173,23 @@ Present a concise summary:
 
 ### 9. Scientific Critical Thinking Assessment (Optional Enhancement)
 
-**Skip this step if** claude-scientific-skills plugin is not installed, `scientific_skills.enhanced_review` is `false`, or the user specified `--no-scientific-skills`.
+**Skip this step if** `--no-scientific-skills` is set, claude-scientific-skills plugin is not installed, or config disables it.
 
-When the claude-scientific-skills plugin is available, augment the review with a rigorous evidence quality assessment:
+Check config before proceeding (if `--exp-dir` is provided):
+```bash
+python3 -c "
+import yaml
+try:
+    cfg = yaml.safe_load(open('<exp_dir>/config.yaml'))
+    enabled = str(cfg.get('scientific_skills', {}).get('enabled', 'auto')).lower()
+    review = cfg.get('scientific_skills', {}).get('enhanced_review', True)
+    print(f'enabled={enabled} enhanced_review={review}')
+except: print('enabled=auto enhanced_review=True')
+" 2>/dev/null
+```
+If `enabled` is `false` or `enhanced_review` is `false`, skip this step.
+
+When enabled, augment the review with a rigorous evidence quality assessment:
 
 1. **Invoke scientific critical thinking**:
    ```

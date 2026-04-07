@@ -115,9 +115,23 @@ ls -la <exp_dir>/figures/
 
 ## Enhanced Figures (Optional — claude-scientific-skills)
 
-**Skip if** `--no-scientific-skills` is set, claude-scientific-skills plugin is not installed, or `scientific_skills.enhanced_figures` is `false` in config.
+**Skip if** `--no-scientific-skills` is set or claude-scientific-skills plugin is not installed.
 
-When the claude-scientific-skills plugin is available, apply `/scientific-visualization` principles to the aggregator script for publication-quality output:
+Check config before proceeding (if experiment config is available):
+```bash
+python3 -c "
+import yaml
+try:
+    cfg = yaml.safe_load(open('<exp_dir>/config.yaml'))
+    enabled = str(cfg.get('scientific_skills', {}).get('enabled', 'auto')).lower()
+    figures = cfg.get('scientific_skills', {}).get('enhanced_figures', True)
+    print(f'enabled={enabled} enhanced_figures={figures}')
+except: print('enabled=auto enhanced_figures=True')
+" 2>/dev/null
+```
+If `enabled` is `false` or `enhanced_figures` is `false`, skip this section.
+
+When enabled, apply `/scientific-visualization` principles to the aggregator script for publication-quality output:
 
 1. **Journal-specific formatting**: When the target is known (ICML, NeurIPS, workshop):
    - ICML/NeurIPS: Single column width 3.25", double column 6.75", min font 6pt at final size
