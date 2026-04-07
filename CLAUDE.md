@@ -49,6 +49,7 @@ uv run python3 tools/latex_compiler.py compile DIR # Compile LaTeX to PDF
 uv run python3 tools/pdf_reader.py FILE           # Extract PDF text
 uv run python3 tools/config.py --config FILE      # Load/display config
 uv run python3 tools/config.py --set KEY=VAL ...  # Override config values (e.g. codex.enabled=false)
+uv run python3 tools/budget_estimator.py --config FILE  # Estimate token usage and cost
 ```
 
 ## Environment
