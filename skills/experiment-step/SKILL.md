@@ -95,6 +95,12 @@ accuracy: 0.8900
 
 ### 4. Write and Execute Code
 
+**Before executing**, check if identical code was already run in this stage:
+```bash
+uv run python3 tools/state_manager.py dedup-check <exp_dir> <stage> --code <exp_dir>/workspace/runfile.py
+```
+If `"duplicate": true`, skip execution and reuse the existing node's metrics. Report: "Skipped — identical code already executed (node <id>, metric: <value>)".
+
 Determine step number from journal-summary total_nodes.
 
 Write the code:
