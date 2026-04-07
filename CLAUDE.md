@@ -108,3 +108,11 @@ codex:
   rescue_on_stuck: true
   venue: auto             # auto | neurips | icml | iclr | workshop
 ```
+
+## Pre-commit Validation
+
+Run before committing to catch common issues:
+```bash
+uv run scripts/pre-commit-check.py
+```
+Checks: SKILL.md frontmatter validity, settings.json path consistency, YAML config parsing, step numbering gaps, marketplace.json completeness.
