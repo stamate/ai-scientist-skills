@@ -221,6 +221,7 @@ This step typically adds 1-3 minutes per stage transition but can prevent wasted
 - The `--no-codex` flag was passed to the orchestrator
 - `codex.rescue_on_stuck` is `false` in config
 - The Codex CLI is not installed
+- The codex-plugin-cc Claude Code plugin is not installed (check same as stage-gate step e.1)
 
 If Stage 1 has used 80%+ of `stage1_max_iters` with zero good nodes, delegate diagnosis to Codex:
 

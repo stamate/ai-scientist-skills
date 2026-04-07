@@ -173,9 +173,15 @@ Present a concise summary:
 
 ### 9. Scientific Critical Thinking Assessment (Optional Enhancement)
 
-**Skip this step if** `--no-scientific-skills` is set, claude-scientific-skills plugin is not installed, or config disables it.
+**Skip this step if** `--no-scientific-skills` is set, plugin not installed, or config disables it.
 
-Check config before proceeding (if `--exp-dir` is provided):
+First, check if the claude-scientific-skills plugin is actually installed:
+```bash
+find "$HOME/.claude/plugins" -maxdepth 8 -name "SKILL.md" -path "*database-lookup*" 2>/dev/null | head -1 | grep -q . && echo "SCIENTIFIC_PLUGIN_OK" || echo "SCIENTIFIC_PLUGIN_MISSING"
+```
+If `SCIENTIFIC_PLUGIN_MISSING`, skip this entire step silently.
+
+Then check config (if `--exp-dir` is provided):
 ```bash
 python3 -c "
 import yaml

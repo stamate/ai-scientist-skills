@@ -115,9 +115,15 @@ ls -la <exp_dir>/figures/
 
 ## Enhanced Figures (Optional — claude-scientific-skills)
 
-**Skip if** `--no-scientific-skills` is set or claude-scientific-skills plugin is not installed.
+**Skip if** `--no-scientific-skills` is set, plugin not installed, or config disables it.
 
-Check config before proceeding (if experiment config is available):
+First, check if the claude-scientific-skills plugin is actually installed:
+```bash
+find "$HOME/.claude/plugins" -maxdepth 8 -name "SKILL.md" -path "*database-lookup*" 2>/dev/null | head -1 | grep -q . && echo "SCIENTIFIC_PLUGIN_OK" || echo "SCIENTIFIC_PLUGIN_MISSING"
+```
+If `SCIENTIFIC_PLUGIN_MISSING`, skip this entire section silently.
+
+Then check config (if experiment config is available):
 ```bash
 python3 -c "
 import yaml

@@ -126,9 +126,15 @@ Each idea should:
 
 ## Enhanced Literature Search (Optional — claude-scientific-skills)
 
-**Skip if** `--no-scientific-skills` is set, claude-scientific-skills plugin is not installed, or `scientific_skills.enhanced_literature` is `false` in config.
+**Skip if** `--no-scientific-skills` is set, plugin not installed, or config disables it.
 
-First, check if the feature is enabled in the active config (use `--config` path if provided, else default):
+First, check if the claude-scientific-skills plugin is actually installed:
+```bash
+find "$HOME/.claude/plugins" -maxdepth 8 -name "SKILL.md" -path "*database-lookup*" 2>/dev/null | head -1 | grep -q . && echo "SCIENTIFIC_PLUGIN_OK" || echo "SCIENTIFIC_PLUGIN_MISSING"
+```
+If `SCIENTIFIC_PLUGIN_MISSING`, skip this entire section silently.
+
+Then check if the feature is enabled in the active config (use `--config` path if provided, else default):
 ```bash
 python3 -c "
 import yaml

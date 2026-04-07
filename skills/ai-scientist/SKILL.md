@@ -93,9 +93,10 @@ Parse from the user's message. If none of `--workshop`, `--idea`, or `--exp-dir`
 
    Check if the claude-scientific-skills plugin is installed:
    ```bash
-   # Check marketplace and cache directories (cache can be deeply nested)
-   find "$HOME/.claude/plugins" -maxdepth 8 -name "SKILL.md" -path "*scientific*" 2>/dev/null | head -1 | grep -q . && echo "SCIENTIFIC_SKILLS_OK" || echo "SCIENTIFIC_SKILLS_MISSING"
+   # Check for the specific claude-scientific-skills plugin (not any plugin with "scientific" in path)
+   find "$HOME/.claude/plugins" -maxdepth 8 -name "SKILL.md" -path "*database-lookup*" 2>/dev/null | head -1 | grep -q . && echo "SCIENTIFIC_SKILLS_OK" || echo "SCIENTIFIC_SKILLS_MISSING"
    ```
+   This checks for the `/database-lookup` skill which is unique to claude-scientific-skills (avoids false positives from other plugins with "scientific" in the path).
    Also read the `scientific_skills.enabled` value from the loaded config (step 3).
 
    Determine `SCIENTIFIC_SKILLS_ENABLED`:
