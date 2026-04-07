@@ -26,8 +26,8 @@ Parse these from the user's message.
 ```bash
 if [ -f "tools/verify_setup.py" ]; then AISCIENTIST_ROOT="$(pwd)"
 elif [ -f "$HOME/.claude/plugins/marketplaces/ai-scientist-skills/tools/verify_setup.py" ]; then AISCIENTIST_ROOT="$HOME/.claude/plugins/marketplaces/ai-scientist-skills"
-else AISCIENTIST_ROOT=$(find "$HOME/.claude/plugins" -maxdepth 8 -name "verify_setup.py" -path "*ai-scientist*" 2>/dev/null | head -1 | xargs dirname | xargs dirname); fi
-echo "Plugin root: $AISCIENTIST_ROOT"
+else AISCIENTIST_ROOT=$(find "$HOME/.claude/plugins" ".claude/plugins" -maxdepth 8 -name "verify_setup.py" -path "*ai-scientist*" 2>/dev/null | head -1 | xargs dirname | xargs dirname); fi
+export AISCIENTIST_ROOT; echo "Plugin root: $AISCIENTIST_ROOT"
 ```
 
 ### 1. Load Context

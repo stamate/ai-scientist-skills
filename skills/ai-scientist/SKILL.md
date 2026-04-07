@@ -52,7 +52,7 @@ Parse from the user's message. If none of `--workshop`, `--idea`, or `--exp-dir`
    else
        AISCIENTIST_ROOT=$(find "$HOME/.claude/plugins" ".claude/plugins" -maxdepth 8 -name "verify_setup.py" -path "*ai-scientist*" 2>/dev/null | head -1 | xargs dirname | xargs dirname)
    fi
-   echo "AI Scientist root: $AISCIENTIST_ROOT"
+   export AISCIENTIST_ROOT; echo "AI Scientist root: $AISCIENTIST_ROOT"
    ```
    **All subsequent `tools/` references in this skill and sub-skills must use `"$AISCIENTIST_ROOT/tools/"`** instead of bare `tools/`. Similarly, `templates/` becomes `"$AISCIENTIST_ROOT/templates/"`.
 
