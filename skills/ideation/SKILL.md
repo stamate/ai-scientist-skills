@@ -150,35 +150,26 @@ except: print('scientific_skills.enabled=auto\nscientific_skills.enhanced_litera
 Where `<config_path_or_templates/bfts_config.yaml>` is the `--config` argument if provided, otherwise `templates/bfts_config.yaml`.
 If `enabled` is `false` or `enhanced_literature` is `false`, skip this section.
 
-When enabled, augment the basic S2 literature search (step 2b) with multi-database queries for richer evidence:
+When enabled, run all available search backends in parallel using Agent subagents for faster results:
 
-1. **Real-time research** — after the S2 search, also invoke:
-   ```
-   /research-lookup "<topic keywords and hypothesis>"
-   ```
-   This uses Perplexity-powered academic search for the latest studies, preprints, and trends not yet indexed by S2.
+```
+Agent 1: uv run python3 tools/search.py "<topic keywords>" --limit 10 --json
+Agent 2: /research-lookup "<topic keywords and hypothesis>"
+Agent 3: /paper-lookup "<specific query>" (if available — skip silently if not)
+```
 
-2. **Multi-database paper search** (only if `/paper-lookup` is available — check by attempting to invoke it):
-   ```
-   /paper-lookup "<specific query>"
-   ```
-   This searches 10 databases (PubMed, arXiv, bioRxiv, OpenAlex, Crossref, Semantic Scholar, CORE, Unpaywall) for related work, citation networks, and open-access full text.
-   If `/paper-lookup` is not available (e.g., using claude-scientific-writer which doesn't include it), skip this step silently.
+Launch all agents simultaneously. Wait for all to complete. Merge results:
+- Deduplicate papers by title similarity (fuzzy match)
+- Prioritize by citation count (highest first)
+- Use the combined evidence for novelty assessment and idea refinement
 
-3. **Mechanistic evidence** (only if `/database-lookup` is available, and for biology/chemistry/materials topics):
-   ```
-   /database-lookup "<entity name>"
-   ```
-   This queries 78+ databases (UniProt, STRING, Reactome, PubChem, ChEMBL, COSMIC, etc.) for mechanistic evidence that can strengthen or challenge the hypothesis.
-   If `/database-lookup` is not available, skip this step silently.
+If `/paper-lookup` or `/database-lookup` are not available (e.g., using claude-scientific-writer which has research-lookup but not these), those agents simply return empty results — the parallel dispatch handles missing skills gracefully.
 
-Use these additional results to:
-- Discover related work that S2 alone might miss (especially preprints and non-English venues)
-- Find mechanistic evidence supporting or contradicting the proposed hypothesis
-- Identify citation networks and key researchers in the area
-- Ground the idea in real biological/chemical/physical data when applicable
-
-The basic S2 search (step 2b) always runs first as the primary source. These enhanced searches add depth, not replace it.
+For biology/chemistry/materials topics, also launch:
+```
+Agent 4: /database-lookup "<entity name>" (if available — skip silently if not)
+```
+This queries 78+ databases (UniProt, STRING, Reactome, PubChem, ChEMBL, etc.) for mechanistic evidence.
 
 ## Important Notes
 
