@@ -312,9 +312,9 @@ Examples:
         verify(project_root)
         if not project_root:
             step("Note")
-            warn("Plugins installed, but skills need the repo's tools/ and templates/ at runtime.")
             warn("Python dependencies were NOT installed (no local repo found).")
-            print(f"      To get everything, re-run with --local or clone the repo separately.")
+            print(f"      Skills discover tools/ automatically from the plugin install directory.")
+            print(f"      For Python deps, re-run with --local or: pip install pyyaml torch numpy matplotlib")
 
     if success:
         print(f"\n{BOLD}=== Done ==={RESET}")
@@ -329,7 +329,8 @@ Examples:
         print(f"    cd {root}")
         print(f"    claude '/ai-scientist --workshop examples/ideas/i_cant_believe_its_not_better.md'")
     else:
-        print(f"\n  Plugins installed globally. To also clone the repo:")
+        scope_label = "at project scope" if scope == "project" else "globally"
+        print(f"\n  Plugins installed {scope_label}. To also clone the repo:")
         print(f"    uv run {url} --local")
     print()
 
