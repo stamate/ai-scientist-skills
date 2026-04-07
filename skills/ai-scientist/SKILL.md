@@ -44,13 +44,11 @@ Parse from the user's message. If none of `--workshop`, `--idea`, or `--exp-dir`
 
 0. **Locate plugin root** (required before any tool invocations):
    ```bash
-   # Try CWD first (cloned repo), then marketplace, then search
+   # Try CWD first (cloned repo), then project-local plugins, then global plugins
    if [ -f "tools/verify_setup.py" ]; then
        AISCIENTIST_ROOT="$(pwd)"
-   elif [ -f "$HOME/.claude/plugins/marketplaces/ai-scientist-skills/tools/verify_setup.py" ]; then
-       AISCIENTIST_ROOT="$HOME/.claude/plugins/marketplaces/ai-scientist-skills"
    else
-       AISCIENTIST_ROOT=$(find "$HOME/.claude/plugins" ".claude/plugins" -maxdepth 8 -name "verify_setup.py" -path "*ai-scientist*" 2>/dev/null | head -1 | xargs dirname | xargs dirname)
+       AISCIENTIST_ROOT=$(find ".claude/plugins" "$HOME/.claude/plugins" -maxdepth 8 -name "verify_setup.py" -path "*ai-scientist*" 2>/dev/null | head -1 | xargs dirname | xargs dirname)
    fi
    export AISCIENTIST_ROOT; if [ -z "$AISCIENTIST_ROOT" ]; then echo "ERROR: Could not find ai-scientist-skills plugin root. Install with: claude plugin marketplace add stamate/ai-scientist-skills"; fi; echo "AI Scientist root: $AISCIENTIST_ROOT"
    ```
