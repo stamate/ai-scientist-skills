@@ -46,7 +46,7 @@ Read the best experiment code from the final completed stage. Read stage summari
 ### 2. Setup LaTeX Directory
 
 ```bash
-ai-scientist-latex setup <exp_dir>/latex --type <icbinb|icml>
+uv run ai-scientist-latex setup <exp_dir>/latex --type <icbinb|icml>
 ```
 
 Create empty references file:
@@ -64,7 +64,7 @@ cp <exp_dir>/figures/*.png <exp_dir>/figures/*.pdf <exp_dir>/latex/figures/ 2>/d
 
 First, check search backend availability:
 ```bash
-ai-scientist-search check
+uv run ai-scientist-search check
 ```
 
 If S2 API is unreachable or rate-limited, **use WebSearch exclusively** for all citation searches below. Do not waste rounds retrying a broken S2 backend.
@@ -75,7 +75,7 @@ For each round:
 2. Formulate 2-3 targeted search queries for the needed citations
 3. Search for papers — try S2 first, fall back to WebSearch immediately on failure:
    ```bash
-   ai-scientist-search "<citation query>" --limit 5 --json
+   uv run ai-scientist-search "<citation query>" --limit 5 --json
    ```
    If this returns no results or exits with error, use **WebSearch** to search `arxiv.org`, `scholar.google.com`, or `semanticscholar.org` directly. Extract title, authors, year, venue from the search results.
 
@@ -149,12 +149,12 @@ Same structure plus:
 ### 6. Compile and Check
 
 ```bash
-ai-scientist-latex compile <exp_dir>/latex --main template.tex
+uv run ai-scientist-latex compile <exp_dir>/latex --main template.tex
 ```
 
 Check for errors:
 ```bash
-ai-scientist-latex pages <exp_dir>/latex/template.pdf
+uv run ai-scientist-latex pages <exp_dir>/latex/template.pdf
 ```
 
 If there are LaTeX errors, read the log file and fix them:

@@ -22,18 +22,18 @@ Same as experiment-step: `--exp-dir`, `--stage`, `--parent-id`, `--action`, `--t
 ### 1. Load Context
 
 ```bash
-ai-scientist-state journal-summary <exp_dir> <stage>
+uv run ai-scientist-state journal-summary <exp_dir> <stage>
 ```
 
 If parent node ID provided:
 ```bash
-ai-scientist-state node-info <exp_dir> <stage> <parent_id> --show-code
+uv run ai-scientist-state node-info <exp_dir> <stage> <parent_id> --show-code
 ```
 
 ### 2. Detect Device
 
 ```bash
-ai-scientist-device --preamble
+uv run ai-scientist-device --preamble
 ```
 
 ### 3. Generate Code
@@ -52,7 +52,7 @@ mkdir -p <exp_dir>/workspace/figures
 ### 5. Check for Duplicates
 
 ```bash
-ai-scientist-state dedup-check <exp_dir> <stage> --code <exp_dir>/workspace/runfile.py
+uv run ai-scientist-state dedup-check <exp_dir> <stage> --code <exp_dir>/workspace/runfile.py
 ```
 
 If duplicate found, report it and skip — no need to execute.

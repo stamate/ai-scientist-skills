@@ -28,12 +28,12 @@ Parse from the user's message.
 ### 1. Extract Paper Text
 
 ```bash
-ai-scientist-pdf <pdf_path>
+uv run ai-scientist-pdf <pdf_path>
 ```
 
 If the paper is long, also extract by sections:
 ```bash
-ai-scientist-pdf <pdf_path> --sections
+uv run ai-scientist-pdf <pdf_path> --sections
 ```
 
 ### 2. Load Review Examples
@@ -243,7 +243,7 @@ If `CODEX_AVAILABLE`, enhance the review with a Codex panel:
 
 1. **Read Codex config values** from the experiment's config (if `--exp-dir` provided):
    ```bash
-   ai-scientist-config --config <exp_dir>/config.yaml 2>/dev/null
+   uv run ai-scientist-config --config <exp_dir>/config.yaml 2>/dev/null
    ```
    Extract:
    - `codex.enabled` — if `"false"`, **skip this entire step** even if the CLI is on PATH
@@ -257,10 +257,10 @@ If `CODEX_AVAILABLE`, enhance the review with a Codex panel:
 
    If `codex.code_alignment` is `true` and `--exp-dir` is provided, save the promoted best solution to a known path and use that:
    ```bash
-   ai-scientist-state save-best <exp_dir> stage4_ablation 2>/dev/null || \
-   ai-scientist-state save-best <exp_dir> stage3_creative 2>/dev/null || \
-   ai-scientist-state save-best <exp_dir> stage2_baseline 2>/dev/null || \
-   ai-scientist-state save-best <exp_dir> stage1_initial
+   uv run ai-scientist-state save-best <exp_dir> stage4_ablation 2>/dev/null || \
+   uv run ai-scientist-state save-best <exp_dir> stage3_creative 2>/dev/null || \
+   uv run ai-scientist-state save-best <exp_dir> stage2_baseline 2>/dev/null || \
+   uv run ai-scientist-state save-best <exp_dir> stage1_initial
    ```
    This writes `best_solution_<id>.py` to the stage's state directory and prints the file path. Use the printed directory (e.g., `<exp_dir>/state/stage4_ablation/`) as `<best_solution_dir>`.
 

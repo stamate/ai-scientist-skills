@@ -38,18 +38,18 @@ Parse these from the user's message or arguments.
 
 Check the current journal state:
 ```bash
-ai-scientist-state journal-summary <exp_dir> <stage>
+uv run ai-scientist-state journal-summary <exp_dir> <stage>
 ```
 
 If a parent node ID is provided, read the parent node's details:
 ```bash
-ai-scientist-state node-info <exp_dir> <stage> <parent_id> --show-code
+uv run ai-scientist-state node-info <exp_dir> <stage> <parent_id> --show-code
 ```
 
 ### 2. Detect Device
 
 ```bash
-ai-scientist-device --preamble
+uv run ai-scientist-device --preamble
 ```
 
 ### 3. Generate Experiment Code
@@ -120,7 +120,7 @@ mkdir -p <exp_dir>/workspace/figures
 
 **After writing, check for duplicates** before executing:
 ```bash
-ai-scientist-state dedup-check <exp_dir> <stage> --code <exp_dir>/workspace/runfile.py
+uv run ai-scientist-state dedup-check <exp_dir> <stage> --code <exp_dir>/workspace/runfile.py
 ```
 If `"duplicate": true`, skip execution and reuse the existing node's metrics. Report: "Skipped — identical code already executed (node <id>, metric: <value>)".
 
@@ -132,7 +132,7 @@ cd <exp_dir>/workspace && timeout 3600 uv run python3 runfile.py 2>&1 | tee <exp
 ### 5. Parse Metrics
 
 ```bash
-ai-scientist-metrics <exp_dir>/logs/step_<N>_output.txt --json
+uv run ai-scientist-metrics <exp_dir>/logs/step_<N>_output.txt --json
 ```
 
 ### 6. Analyze Plots
@@ -149,7 +149,7 @@ If plots were generated in `<exp_dir>/workspace/figures/`:
 ### 8. Save Node to Journal
 
 ```bash
-ai-scientist-state add-node <exp_dir> <stage> \
+uv run ai-scientist-state add-node <exp_dir> <stage> \
     --plan "<brief plan description>" \
     --code <exp_dir>/workspace/runfile.py \
     --output-log <exp_dir>/logs/step_<N>_output.txt \

@@ -8,7 +8,7 @@ description: Run the complete AI Scientist pipeline — from research ideation t
 
 You are the AI Scientist, an autonomous research agent that generates novel research ideas, conducts experiments, writes papers, and performs peer review. This orchestrates the complete pipeline by invoking sub-skills.
 
-> **Runtime**: This project uses `uv` with a `.venv`. ALL `ai-scientist-*` CLI commands must be called with `uv run`, e.g. `uv run ai-scientist-verify`, `uv run ai-scientist-state status <dir>`. This ensures the correct Python environment is used.
+> **Runtime**: This project uses `uv` with a `.venv` in the **project directory**. ALL `ai-scientist-*` CLI commands must be called with `uv run` from the project directory, e.g. `uv run ai-scientist-verify`. **Never cd into the plugin cache directory** — always run commands from the user's project working directory.
 
 ## Arguments
 
@@ -57,17 +57,17 @@ curl -fsSL https://raw.githubusercontent.com/stamate/ai-scientist-skills/main/sc
 
 1. **Detect device**:
    ```bash
-   ai-scientist-device --info
+   uv run ai-scientist-device --info
    ```
 
 2. **Load configuration**:
    ```bash
-   ai-scientist-config --config <config_path>
+   uv run ai-scientist-config --config <config_path>
    ```
 
 3. **Check LaTeX** (optional, only needed for writeup):
    ```bash
-   ai-scientist-latex check
+   uv run ai-scientist-latex check
    ```
    Warn if pdflatex or bibtex is missing — the experiment can still run, paper generation will be skipped.
 
@@ -125,15 +125,15 @@ curl -fsSL https://raw.githubusercontent.com/stamate/ai-scientist-skills/main/sc
 3. If `--idea` provided, validate the idea JSON has required fields per `templates/idea_schema.json`
 4. Test S2 API connectivity:
    ```bash
-   ai-scientist-search check
+   uv run ai-scientist-search check
    ```
 5. Test LaTeX compilation with a minimal document:
    ```bash
-   ai-scientist-latex check
+   uv run ai-scientist-latex check
    ```
 6. Report estimated token budget (if budget_estimator.py exists):
    ```bash
-   ai-scientist-budget --config <config_path> 2>/dev/null || echo "Budget estimator not available"
+   uv run ai-scientist-budget --config <config_path> 2>/dev/null || echo "Budget estimator not available"
    ```
 7. Print summary:
    ```
@@ -357,5 +357,5 @@ The pipeline supports resuming at any phase:
 - For a quick test run, use `--config` with reduced iterations:
   ```bash
   # Create a test config with fewer iterations
-  ai-scientist-config --set agent.stages.stage1_max_iters=5 agent.stages.stage2_max_iters=3 agent.stages.stage3_max_iters=3 agent.stages.stage4_max_iters=3
+  uv run ai-scientist-config --set agent.stages.stage1_max_iters=5 agent.stages.stage2_max_iters=3 agent.stages.stage3_max_iters=3 agent.stages.stage4_max_iters=3
   ```

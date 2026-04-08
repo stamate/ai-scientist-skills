@@ -38,24 +38,24 @@ Parse these from the user's message.
 
 **New experiment** (no `--exp-dir`):
 ```bash
-ai-scientist-state init --idea <idea_path> --config <config_path>
+uv run ai-scientist-state init --idea <idea_path> --config <config_path>
 ```
 This prints the experiment directory path. Use it as `<exp_dir>` in all subsequent commands.
 
 **Resume** (with `--exp-dir`):
 ```bash
-ai-scientist-state status <exp_dir>
+uv run ai-scientist-state status <exp_dir>
 ```
 Read the current stage and completed stages to know where to resume.
 
 ### 2. Detect Device
 ```bash
-ai-scientist-device --info
+uv run ai-scientist-device --info
 ```
 
 ### 3. Load Config
 ```bash
-ai-scientist-config --config <config_path>
+uv run ai-scientist-config --config <config_path>
 ```
 
 Key values:
@@ -105,7 +105,7 @@ Repeat until stage completion (max_iters reached or completion criteria met):
 
 1. **Select candidate nodes** for expansion:
    ```bash
-   ai-scientist-state select-nodes <exp_dir> <stage>
+   uv run ai-scientist-state select-nodes <exp_dir> <stage>
    ```
    This returns JSON with candidate node IDs and recommended actions (debug/improve).
 
@@ -117,7 +117,7 @@ Repeat until stage completion (max_iters reached or completion criteria met):
 
 3. **Check stage completion** after each batch:
    ```bash
-   ai-scientist-state journal-summary <exp_dir> <stage>
+   uv run ai-scientist-state journal-summary <exp_dir> <stage>
    ```
 
    **Stage 1 completion**: `good_nodes > 0`
@@ -131,7 +131,7 @@ When a stage completes, run the best node's code with multiple random seeds to v
 
 1. Get the best node's code:
    ```bash
-   ai-scientist-state best-node <exp_dir> <stage> --show-code
+   uv run ai-scientist-state best-node <exp_dir> <stage> --show-code
    ```
 
 2. Run it with different seeds (42, 123, 456). First check if the code uses the SEED env var (new style) or hardcoded seeds (old style):
@@ -158,12 +158,12 @@ When a stage completes:
 
 1. Record the transition:
    ```bash
-   ai-scientist-state transition <exp_dir> <current_stage> <next_stage>
+   uv run ai-scientist-state transition <exp_dir> <current_stage> <next_stage>
    ```
 
 2. Generate a stage briefing for the next stage:
    ```bash
-   ai-scientist-state stage-briefing <exp_dir> <current_stage>
+   uv run ai-scientist-state stage-briefing <exp_dir> <current_stage>
    ```
    This returns a JSON summary with: best metrics, datasets tested, key findings, and failed approaches.
 
@@ -195,7 +195,7 @@ When a stage completes:
 
 2. **If available**, get the promoted best solution from the just-completed stage:
    ```bash
-   ai-scientist-state save-best <exp_dir> <completed_stage>
+   uv run ai-scientist-state save-best <exp_dir> <completed_stage>
    ```
    Where `<completed_stage>` is the stage that just finished (e.g., `stage1_initial`), NOT the next stage.
    This writes the best node's code to `<exp_dir>/state/<current_stage>/best_solution_<id>.py`. Use that file path for the review:
@@ -241,7 +241,7 @@ If Stage 1 has used 80%+ of `stage1_max_iters` with zero good nodes, delegate di
 
 1. **Collect recent error information**:
    ```bash
-   ai-scientist-state journal-summary <exp_dir> stage1_initial
+   uv run ai-scientist-state journal-summary <exp_dir> stage1_initial
    ```
    Note the total nodes and buggy count.
 
@@ -284,22 +284,22 @@ After all 4 stages complete:
 
 1. Print final summary:
    ```bash
-   ai-scientist-state status <exp_dir>
-   ai-scientist-state journal-summary <exp_dir> stage1_initial
-   ai-scientist-state journal-summary <exp_dir> stage2_baseline
-   ai-scientist-state journal-summary <exp_dir> stage3_creative
-   ai-scientist-state journal-summary <exp_dir> stage4_ablation
+   uv run ai-scientist-state status <exp_dir>
+   uv run ai-scientist-state journal-summary <exp_dir> stage1_initial
+   uv run ai-scientist-state journal-summary <exp_dir> stage2_baseline
+   uv run ai-scientist-state journal-summary <exp_dir> stage3_creative
+   uv run ai-scientist-state journal-summary <exp_dir> stage4_ablation
    ```
 
 2. Copy best results:
    ```bash
-   ai-scientist-state save-best <exp_dir> stage4_ablation
+   uv run ai-scientist-state save-best <exp_dir> stage4_ablation
    cp -r <exp_dir>/workspace/figures/* <exp_dir>/figures/ 2>/dev/null || true
    ```
 
 3. Mark experiment complete:
    ```bash
-   ai-scientist-state update-state <exp_dir> --phase complete --status experiment_done
+   uv run ai-scientist-state update-state <exp_dir> --phase complete --status experiment_done
    ```
 
 ## Error Handling

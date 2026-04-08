@@ -70,7 +70,7 @@ Use the Read tool to read the PDF file at `<pdf_path>`. This extracts the paper 
 
 Also extract text for piping:
 ```bash
-ai-scientist-pdf <pdf_path>
+uv run ai-scientist-pdf <pdf_path>
 ```
 
 ### 3. Run Codex Paper Review
@@ -79,10 +79,10 @@ Invoke the Codex paper review command in a single pass. If `--exp-dir` is provid
 
 **Locate the promoted best solution** (if `--exp-dir` provided and alignment enabled):
 ```bash
-ai-scientist-state save-best <exp_dir> stage4_ablation 2>/dev/null || \
-ai-scientist-state save-best <exp_dir> stage3_creative 2>/dev/null || \
-ai-scientist-state save-best <exp_dir> stage2_baseline 2>/dev/null || \
-ai-scientist-state save-best <exp_dir> stage1_initial
+uv run ai-scientist-state save-best <exp_dir> stage4_ablation 2>/dev/null || \
+uv run ai-scientist-state save-best <exp_dir> stage3_creative 2>/dev/null || \
+uv run ai-scientist-state save-best <exp_dir> stage2_baseline 2>/dev/null || \
+uv run ai-scientist-state save-best <exp_dir> stage1_initial
 ```
 This writes the best node's code and prints the file path. Use the printed directory (e.g., `<exp_dir>/state/stage4_ablation/`) as `<best_solution_dir>`. If all stages fail, skip alignment and log a warning.
 

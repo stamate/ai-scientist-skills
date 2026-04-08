@@ -50,7 +50,7 @@ Think of a novel research direction within the workshop scope. Consider:
 
 Before finalizing, search for related work to check novelty:
 ```bash
-ai-scientist-search "<your proposed topic keywords>" --limit 10 --json
+uv run ai-scientist-search "<your proposed topic keywords>" --limit 10 --json
 ```
 
 If S2 returns no results, use the WebSearch tool to search `arxiv.org` for related papers.
