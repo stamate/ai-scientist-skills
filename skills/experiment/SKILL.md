@@ -11,7 +11,7 @@ You are the experiment orchestrator for the AI Scientist system. This skill mana
 ## Arguments
 
 - `--idea <path>`: Path to idea JSON file (required)
-- `--config <path>`: Path to config YAML (optional, defaults to `templates/bfts_config.yaml`)
+- `--config <path>`: Path to config YAML (optional, defaults to `config.yaml`)
 - `--exp-dir <path>`: Resume from existing experiment directory (optional)
 - `--start-stage <N>`: Start from stage N (1-4, default: 1)
 - `--no-codex`: Disable all Codex integration (stage-gate review, rescue) even if Codex is available

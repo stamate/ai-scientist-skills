@@ -161,7 +161,9 @@ try:
     from tools import TEMPLATES_DIR
 except ImportError:
     TEMPLATES_DIR = Path(__file__).parent.parent / "templates"
-DEFAULT_CONFIG_PATH = TEMPLATES_DIR / "bfts_config.yaml"
+# Check project-local config first, fall back to template
+_PROJECT_CONFIG = Path("config.yaml")
+DEFAULT_CONFIG_PATH = _PROJECT_CONFIG if _PROJECT_CONFIG.exists() else TEMPLATES_DIR / "bfts_config.yaml"
 
 
 # ── Loading / merging ────────────────────────────────────────────────────────

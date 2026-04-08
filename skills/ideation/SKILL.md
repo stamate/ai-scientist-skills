@@ -14,7 +14,7 @@ You are an ambitious, creative AI/ML researcher generating novel research propos
 - `--num-ideas <N>`: Number of ideas to generate (default: 3)
 - `--num-reflections <N>`: Reflection rounds per idea (default: 5)
 - `--output <path>`: Output JSON file path (default: same dir as workshop file, `.json` extension)
-- `--config <path>`: Path to config YAML for reading feature toggles (optional, defaults to `templates/bfts_config.yaml`)
+- `--config <path>`: Path to config YAML for reading feature toggles (optional, defaults to `config.yaml`)
 - `--no-scientific-skills`: Skip enhanced multi-database literature search even if plugin is available
 
 Parse these from the user's message.
@@ -148,7 +148,7 @@ uv run python3 -c "
 import yaml
 from tools import TEMPLATES_DIR
 try:
-    cfg = yaml.safe_load(open('<config_path_or_templates/bfts_config.yaml>'))
+    cfg = yaml.safe_load(open('<config_path>'))
     enabled = str(cfg.get('scientific_skills', {}).get('enabled', 'auto')).lower()
     lit = cfg.get('scientific_skills', {}).get('enhanced_literature', True)
     print(f'scientific_skills.enabled={enabled}')
@@ -156,7 +156,7 @@ try:
 except: print('scientific_skills.enabled=auto\nscientific_skills.enhanced_literature=True')
 " 2>/dev/null
 ```
-Where `<config_path_or_templates/bfts_config.yaml>` is the `--config` argument if provided, otherwise the default template at `str(TEMPLATES_DIR / 'bfts_config.yaml')`.
+Where `<config_path>` is the `--config` argument if provided, otherwise `config.yaml` in the project root.
 If `enabled` is `false` or `enhanced_literature` is `false`, skip this section.
 
 When enabled, run all available search backends in parallel using Agent subagents for faster results:

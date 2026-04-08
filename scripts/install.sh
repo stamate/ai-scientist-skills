@@ -73,6 +73,8 @@ extra_plugins=(
 
 core_ok=0
 for plugin in "${core_plugins[@]}"; do
+    # Force reinstall to ensure latest version from marketplace
+    claude plugin uninstall "$plugin" --scope project 2>/dev/null || true
     if claude plugin install "$plugin" --scope project 2>/dev/null; then
         ok "$plugin"
         ((core_ok++))
@@ -205,7 +207,14 @@ cat > CLAUDE.md << 'CLAUDEMD'
 
 ## Environment
 
-This project uses `uv` with a `.venv` directory. **ALWAYS** prefix `ai-scientist-*` commands with `uv run`:
+This project uses `uv` with a `.venv` directory.
+
+**CRITICAL RULES:**
+1. **ALWAYS** prefix `ai-scientist-*` commands with `uv run`
+2. **ALWAYS** use `--config config.yaml` (NOT `templates/bfts_config.yaml`) — the project config has the user's compute backend and settings
+3. **Never** `cd` into the plugin cache directory
+
+CLI commands:
 
 ```bash
 uv run ai-scientist-verify

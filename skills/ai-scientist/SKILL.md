@@ -15,7 +15,7 @@ You are the AI Scientist, an autonomous research agent that generates novel rese
 - `--workshop <path>`: Path to workshop/topic description (.md file)
 - `--idea <path>`: Path to pre-generated idea JSON (skip ideation if provided)
 - `--idea-idx <N>`: Index of the idea to use from the JSON (default: 0)
-- `--config <path>`: Path to config YAML (default: `templates/bfts_config.yaml`)
+- `--config <path>`: Path to config YAML (default: `config.yaml`)
 - `--exp-dir <path>`: Resume from existing experiment directory
 - `--type <icbinb|icml>`: Paper template type (default: icbinb)
 - `--skip-writeup`: Skip the paper writing phase
