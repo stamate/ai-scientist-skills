@@ -25,11 +25,14 @@ echo "  .venv created with: torch, numpy, matplotlib, seaborn, transformers, etc
 echo "  CLI tools: ai-scientist-verify, ai-scientist-state, ai-scientist-config, ..."
 echo "  OK"
 
-# 3. Add marketplaces
+# 3. Add and update marketplaces (update ensures latest version is cached)
 echo "[2/3] Adding marketplaces..."
 claude plugin marketplace add stamate/ai-scientist-skills 2>/dev/null || true
 claude plugin marketplace add stamate/codex-plugin-cc 2>/dev/null || true
 claude plugin marketplace add K-Dense-AI/claude-scientific-skills 2>/dev/null || true
+claude plugin marketplace update stm-ai-sci 2>/dev/null || true
+claude plugin marketplace update stm-codex 2>/dev/null || true
+claude plugin marketplace update claude-scientific-skills 2>/dev/null || true
 echo "  OK"
 
 # 4. Install plugins at project scope
