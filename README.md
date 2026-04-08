@@ -342,7 +342,7 @@ Install the [claude-scientific-skills](https://github.com/stamate/claude-scienti
 
 ```bash
 claude plugin marketplace add stamate/claude-scientific-skills
-claude plugin install sci-skills@stm-sci-skills
+claude plugin install scientific-skills@stm-sci-skills
 ```
 
 When scientific skills are available, the pipeline automatically:

@@ -9,7 +9,7 @@
   },
   "plugins": [
     {
-      "name": "ai-sci",
+      "name": "ai-scientist",
       "description": "Full AI research pipeline: ideation, BFTS experiment, plot aggregation, paper writeup, and peer review — all driven by a single agent.",
       "source": "./",
       "skills": [

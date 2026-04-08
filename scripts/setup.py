@@ -175,9 +175,9 @@ def install_claude_plugin(marketplace: str, plugin: str, repo: str, scope: str =
 def install_all_plugins(scope: str = "user") -> bool:
     # (marketplace_name, plugin_name, github_repo)
     plugins = [
-        ("stm-ai-sci", "ai-sci", "stamate/ai-scientist-skills"),
+        ("stm-ai-sci", "ai-scientist", "stamate/ai-scientist-skills"),
         ("stm-codex", "codex", "stamate/codex-plugin-cc"),
-        ("stm-sci-skills", "sci-skills", "stamate/claude-scientific-skills"),
+        ("stm-sci-skills", "scientific-skills", "stamate/claude-scientific-skills"),
     ]
     step(f"Claude Code plugins ({len(plugins)}, scope: {scope})")
     all_ok = True
