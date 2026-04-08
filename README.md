@@ -226,7 +226,7 @@ The experiment phase uses a **4-stage Best-First Tree Search (BFTS)**, faithfull
 
 ## Python Tools
 
-All tools are invoked via `uv run python3 tools/<module>.py` from the project root.
+All tools are installed as CLI commands via `uv pip install`. Invoke with `uv run ai-scientist-<name>` (e.g., `uv run ai-scientist-verify`).
 
 | Tool | Purpose |
 |------|---------|
@@ -259,7 +259,7 @@ ai-scientist-skills/
 │   ├── codex-review/SKILL.md  #   Codex panel review (optional)
 │   ├── lit-search/SKILL.md    #   Literature search
 │   └── workshop/SKILL.md     #   Workshop description creator
-├── tools/                     # Python utilities (all via uv run python3)
+├── tools/                     # Python utilities (installed as CLI commands)
 │   ├── verify_setup.py        #   Environment verification
 │   ├── config.py              #   Configuration loading
 │   ├── device_utils.py        #   CUDA / MPS / CPU + SEED env var
@@ -317,7 +317,7 @@ writeup_type: icbinb       # "icbinb" (4-page) or "icml" (8-page)
 |---------|------|-------------|
 | **Dry run** | `--dry-run` | Validate environment and config without running experiments. |
 | **Revision loop** | `--revision-passes N` | Re-review and revise paper up to N times if score < threshold. |
-| **Budget estimate** | `uv run python3 tools/budget_estimator.py` | Estimate token usage and cost before running. |
+| **Budget estimate** | `uv run ai-scientist-budget --config templates/bfts_config.yaml` | Estimate token usage and cost before running. |
 | **Pre-commit check** | `uv run scripts/pre-commit-check.py` | Validate SKILL.md files, config, step numbering. |
 | **Deduplication** | Automatic | Content-hash check skips re-executing identical experiment code. |
 | **Structured logs** | Automatic | JSON log per experiment node in `logs/structured/`. |
@@ -400,7 +400,7 @@ codex:
 | Cost visibility | None | Token budget estimator before execution |
 | Revision loop | None | Automatic write → review → revise → re-review |
 | Experiment dedup | None | Content-hash skips re-executing identical code |
-| Package manager | pip | uv (all invocations via `uv run python3`) |
+| Package manager | pip | uv (tools installed as CLI commands via `uv pip install`) |
 
 ## License
 

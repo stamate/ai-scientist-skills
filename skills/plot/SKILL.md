@@ -85,7 +85,7 @@ cat > <exp_dir>/auto_plot_aggregator.py << 'PYTHON_EOF'
 <generated aggregator script>
 PYTHON_EOF
 
-cd <exp_dir> && python auto_plot_aggregator.py
+cd <exp_dir> && uv run python3 auto_plot_aggregator.py
 ```
 
 ### 5. Review Generated Figures
