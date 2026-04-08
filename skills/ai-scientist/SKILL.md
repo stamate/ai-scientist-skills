@@ -44,13 +44,9 @@ Parse from the user's message. If none of `--workshop`, `--idea`, or `--exp-dir`
 
 0. **Locate plugin root** (required before any tool invocations):
    ```bash
-   # Try CWD first (cloned repo), then project-local plugins, then global plugins
-   if [ -f "tools/verify_setup.py" ]; then
-       AISCIENTIST_ROOT="$(pwd)"
-   else
-       AISCIENTIST_ROOT=$(find ".claude/plugins" "$HOME/.claude/plugins/cache" "$HOME/.claude/plugins" -maxdepth 8 -name "verify_setup.py" -path "*ai-scientist*" 2>/dev/null | head -1 | xargs dirname | xargs dirname)
-   fi
-   export AISCIENTIST_ROOT; if [ -z "$AISCIENTIST_ROOT" ]; then echo "ERROR: Could not find ai-scientist-skills plugin root. Install with: claude plugin marketplace add stamate/ai-scientist-skills"; fi; echo "AI Scientist root: $AISCIENTIST_ROOT"
+   export AISCIENTIST_ROOT=$(claude plugin list --json 2>/dev/null | python3 -c "import json,sys;print(next((p['installPath'] for p in json.load(sys.stdin) if 'ai-scientist' in p['id']),''))" 2>/dev/null)
+   [ -z "$AISCIENTIST_ROOT" ] && echo "ERROR: ai-scientist plugin not found"
+   echo "AI Scientist root: $AISCIENTIST_ROOT"
    ```
    **All subsequent `tools/` references in this skill and sub-skills must use `"$AISCIENTIST_ROOT/tools/"`** instead of bare `tools/`. Similarly, `templates/` becomes `"$AISCIENTIST_ROOT/templates/"`.
 
