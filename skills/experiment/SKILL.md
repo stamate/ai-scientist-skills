@@ -101,6 +101,8 @@ For stages 2-4, carry the best node from the previous stage as the starting poin
 
 #### b. Iterative Refinement Loop
 
+If the superpowers plugin is available, use `/superpowers:writing-plans` at the start of each stage to create a brief plan for what this stage should achieve and how to approach the iterations. This helps maintain focus across many iterations.
+
 Repeat until stage completion (max_iters reached or completion criteria met):
 
 1. **Select candidate nodes** for expansion:
@@ -176,7 +178,17 @@ When a stage completes:
 
 **Why briefings instead of code?** Each stage has fundamentally different goals. Stage 2 changes hyperparameters, Stage 3 changes architecture, Stage 4 adds ablation logic. Passing code forces the agent to work around existing structure. Passing conclusions lets it write clean code for the new goal.
 
-#### e. Stage-Gate Code Review (Optional — Codex)
+#### e. Code Review (Optional)
+
+**Skip if** the code-review plugin is not installed.
+
+Before the Codex stage-gate review, run a general code review on the best node's code using `/code-review`. This catches code quality issues (dead code, unused variables, readability) that complement Codex's ML-specific review. Save the best solution first, then review:
+```bash
+uv run ai-scientist-state save-best <exp_dir> <current_stage>
+```
+Then invoke `/code-review` on the saved file. Apply any quick fixes before proceeding.
+
+#### f. Stage-Gate Code Review (Optional — Codex)
 
 **Skip if** any of these conditions are true:
 - The global `codex.enabled` config value is `"false"`

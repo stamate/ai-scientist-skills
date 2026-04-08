@@ -54,6 +54,8 @@ uv run ai-scientist-device --preamble
 
 ### 3. Generate Experiment Code
 
+**Library docs lookup** (if context7 plugin available — skip silently if not): Before writing code, use context7 to look up documentation for the key libraries you'll use (e.g., PyTorch, datasets, transformers). This ensures you use current APIs and avoid deprecated patterns.
+
 Based on the action type, generate a complete Python experiment script:
 
 #### For `draft` (new root node):
@@ -123,6 +125,12 @@ mkdir -p <exp_dir>/workspace/figures
 uv run ai-scientist-state dedup-check <exp_dir> <stage> --code <exp_dir>/workspace/runfile.py
 ```
 If `"duplicate": true`, skip execution and reuse the existing node's metrics. Report: "Skipped — identical code already executed (node <id>, metric: <value>)".
+
+**Lint and format** (if astral plugin available — skip silently if not):
+```bash
+ruff format <exp_dir>/workspace/runfile.py 2>/dev/null || true
+ruff check <exp_dir>/workspace/runfile.py --fix --silent 2>/dev/null || true
+```
 
 Execute and capture output:
 ```bash

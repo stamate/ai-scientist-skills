@@ -38,6 +38,8 @@ uv run ai-scientist-device --preamble
 
 ### 3. Generate Code
 
+**Library docs lookup** (if context7 plugin available — skip silently if not): Before writing code, use context7 to look up documentation for the key libraries you'll use (e.g., PyTorch, datasets, transformers). This ensures you use current APIs and avoid deprecated patterns.
+
 Based on action type (draft/debug/improve), generate the complete Python experiment script. Follow all code requirements from experiment-step (device preamble with SEED env var, metric printing as `metric_name: value`, figures/ directory, <60 min execution).
 
 ### 4. Write Code (do NOT execute)

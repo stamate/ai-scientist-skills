@@ -40,6 +40,8 @@ For each new idea (up to `num-ideas`):
 
 #### a. Brainstorm
 
+If the superpowers plugin is available, use `/superpowers:brainstorming` to explore the research space before generating ideas. This helps discover non-obvious directions and interdisciplinary connections.
+
 Think of a novel research direction within the workshop scope. Consider:
 - What are open problems in this area?
 - What surprising negative results or failure modes exist?

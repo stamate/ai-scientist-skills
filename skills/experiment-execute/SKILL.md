@@ -29,6 +29,12 @@ Determine step number from journal:
 uv run ai-scientist-state journal-summary <exp_dir> <stage>
 ```
 
+Lint and format before running (if astral plugin available — skip silently if not):
+```bash
+ruff format <exp_dir>/workspace/runfile.py 2>/dev/null || true
+ruff check <exp_dir>/workspace/runfile.py --fix --silent 2>/dev/null || true
+```
+
 Run the previously generated code:
 ```bash
 cd <exp_dir>/workspace && timeout 3600 uv run python3 runfile.py 2>&1 | tee <exp_dir>/logs/step_<N>_output.txt
