@@ -23,7 +23,7 @@ Parse from the user's message.
 ### 0. Locate Plugin Root
 
 ```bash
-export AISCIENTIST_ROOT=$(claude plugin list --json 2>/dev/null | python3 -c "import json,sys;print(next((p['installPath'] for p in json.load(sys.stdin) if 'ai-scientist' in p['id']),''))" 2>/dev/null)
+export AISCIENTIST_ROOT=$(claude plugin list --json 2>/dev/null | python3 -c "import json,sys;print(next((p['installPath'] for p in json.load(sys.stdin) if p['id'].startswith('ai-sci@')),''))" 2>/dev/null)
 [ -z "$AISCIENTIST_ROOT" ] && echo "ERROR: ai-scientist plugin not found"
 echo "Plugin root: $AISCIENTIST_ROOT"
 ```
@@ -185,7 +185,7 @@ Present a concise summary:
 
 First, check if the claude-scientific-skills plugin is actually installed:
 ```bash
-claude plugin list --json 2>/dev/null | python3 -c "import json,sys;any('scientific' in p['id'] for p in json.load(sys.stdin)) and print('SCIENTIFIC_PLUGIN_OK') or print('SCIENTIFIC_PLUGIN_MISSING')" 2>/dev/null
+claude plugin list --json 2>/dev/null | python3 -c "import json,sys;any('sci-skills' in p['id'] for p in json.load(sys.stdin)) and print('SCIENTIFIC_PLUGIN_OK') or print('SCIENTIFIC_PLUGIN_MISSING')" 2>/dev/null
 ```
 If `SCIENTIFIC_PLUGIN_MISSING`, skip this entire step silently.
 
