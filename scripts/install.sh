@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -uo pipefail
+# Note: NOT using set -e — we handle errors explicitly per step
 
 # AI Scientist Skills — Install
 # Usage: curl -fsSL https://raw.githubusercontent.com/stamate/ai-scientist-skills/main/scripts/install.sh | bash
