@@ -60,7 +60,31 @@ curl -fsSL https://raw.githubusercontent.com/stamate/ai-scientist-skills/main/sc
    uv run ai-scientist-device --info
    ```
 
-2. **Load configuration**:
+2. **Choose compute backend**:
+
+   Check if a compute backend is already set in the config. If not (first run), **ask the user**:
+
+   > **Where would you like to run experiments?**
+   > 1. **Local** — use this machine (detected: MPS/CUDA/CPU)
+   > 2. **Modal.com** — run on cloud GPUs (A100, H100, T4, etc.)
+
+   If the user chooses **Local**: set `compute.backend: local` in config. Use the detected device.
+
+   If the user chooses **Modal.com**:
+   - Check that `modal` CLI is installed: `which modal 2>/dev/null`
+   - Check authentication: `modal profile current 2>/dev/null`
+   - If not set up, guide them: `pip install modal && modal setup`
+   - Ask which GPU: A100 (default), H100, T4, L4
+   - Set `compute.backend: modal` and `compute.modal.gpu: <choice>` in config
+
+   Save the choice to the experiment config so it persists:
+   ```bash
+   uv run ai-scientist-config --set compute.backend=<local|modal> compute.modal.gpu=<gpu>
+   ```
+
+   On subsequent runs, skip the prompt — read from config.
+
+3. **Load configuration**:
    ```bash
    uv run ai-scientist-config --config <config_path>
    ```
@@ -120,7 +144,7 @@ curl -fsSL https://raw.githubusercontent.com/stamate/ai-scientist-skills/main/sc
 
 **Only if** `--dry-run` is set. After Phase 0 completes, perform extended validation and stop:
 
-1. Report all Phase 0 results (environment, device, config, LaTeX, Codex, scientific skills)
+1. Report all Phase 0 results (environment, device, compute backend, config, LaTeX, Codex, scientific skills)
 2. If `--workshop` provided, validate the workshop file has required sections (Title, Keywords, TL;DR, Abstract)
 3. If `--idea` provided, validate the idea JSON has required fields per `templates/idea_schema.json`
 4. Test S2 API connectivity:

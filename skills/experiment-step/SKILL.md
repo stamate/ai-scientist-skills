@@ -133,9 +133,17 @@ ruff check <exp_dir>/workspace/runfile.py --fix --silent 2>/dev/null || true
 ```
 
 Execute and capture output:
+
+**If `compute.backend` is `local`** (default):
 ```bash
 cd <exp_dir>/workspace && timeout 3600 uv run python3 runfile.py 2>&1 | tee <exp_dir>/logs/step_<N>_output.txt
 ```
+
+**If `compute.backend` is `modal`**: Run on Modal cloud GPU. Create a Modal wrapper that uploads `runfile.py` and executes it:
+```bash
+cd <exp_dir>/workspace && modal run --detach runfile.py 2>&1 | tee <exp_dir>/logs/step_<N>_output.txt
+```
+If Modal execution fails (auth, quota, etc.), fall back to local execution and warn the user.
 
 ### 5. Parse Metrics
 

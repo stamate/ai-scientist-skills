@@ -80,6 +80,19 @@ class CodexConfig:
 
 
 @dataclass
+class ModalConfig:
+    gpu: str = "A100"  # A100 | H100 | T4 | L4
+    timeout: int = 3600
+    image: str = "python:3.12"
+
+
+@dataclass
+class ComputeConfig:
+    backend: str = ""  # "" (unset, will prompt) | "local" | "modal"
+    modal: ModalConfig = field(default_factory=ModalConfig)
+
+
+@dataclass
 class RevisionConfig:
     enabled: bool = False
     score_threshold: int = 5       # re-run if Overall < this
@@ -134,6 +147,9 @@ class Config:
 
     # Scientific skills integration (optional)
     scientific_skills: ScientificSkillsConfig = field(default_factory=ScientificSkillsConfig)
+
+    # Compute backend
+    compute: ComputeConfig = field(default_factory=ComputeConfig)
 
     # Revision loop
     revision: RevisionConfig = field(default_factory=RevisionConfig)

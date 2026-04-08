@@ -91,6 +91,14 @@ codex:
   rescue_on_stuck: true      # Delegate to Codex when experiments are stuck
   venue: auto                # auto (from writeup_type) | neurips | icml | iclr | workshop
 
+# ── Compute backend ──────────────────────────────────────────────────────────
+compute:
+  backend: ""                  # "" (prompt on first run) | "local" | "modal"
+  modal:
+    gpu: "A100"                # A100 | H100 | T4 | L4
+    timeout: 3600              # Max seconds per Modal job
+    image: "python:3.12"       # Base Docker image for Modal
+
 # ── Revision loop (optional — re-review and revise if score is low) ─────────
 revision:
   enabled: false               # Opt-in: write → review → revise → re-review
