@@ -111,7 +111,7 @@ if [ -z "$current_backend" ] || [ "$current_backend" = "''" ] || [ "$current_bac
     case "$choice" in
         2|modal|Modal)
             # Install modal if not present
-            if ! command -v modal &>/dev/null; then
+            if ! uv run modal --version &>/dev/null; then
                 echo "  Installing modal..."
                 uv pip install modal --quiet 2>&1 || {
                     fail "Failed to install modal package"
@@ -124,7 +124,7 @@ if [ -z "$current_backend" ] || [ "$current_backend" = "''" ] || [ "$current_bac
 
             if [ "$choice" != "done" ]; then
                 # Authenticate
-                if ! modal profile current &>/dev/null; then
+                if ! uv run modal profile current &>/dev/null; then
                     echo ""
                     echo "  Modal authentication required."
                     echo "  Get your token command at: https://modal.com/settings/tokens"
@@ -142,19 +142,19 @@ if [ -z "$current_backend" ] || [ "$current_backend" = "''" ] || [ "$current_bac
                             printf "  > "
                             read -r token_cmd < /dev/tty
                             # Run the command directly
-                            eval "$token_cmd" 2>&1 || true
-                            if modal profile current &>/dev/null; then
+                            eval "uv run $token_cmd" 2>&1 || true
+                            if uv run modal profile current &>/dev/null; then
                                 ok "Modal authenticated"
                             else
-                                warn "Auth may have failed — verify with: modal profile current"
+                                warn "Auth may have failed — verify with: uv run modal profile current"
                             fi
                             ;;
                         2)
                             echo "  Running modal setup (opens browser)..."
-                            modal setup < /dev/tty || warn "modal setup failed"
+                            uv run modal setup < /dev/tty || warn "modal setup failed"
                             ;;
                         *)
-                            warn "Skipped auth — run 'modal setup' before using Modal"
+                            warn "Skipped auth — run 'uv run modal setup' before using Modal"
                             ;;
                     esac
                 else
