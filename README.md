@@ -78,21 +78,30 @@ sudo apt install texlive-full
 **Option A — Install into your project** (recommended):
 ```bash
 cd your-research-project
+npx skills add stamate/ai-scientist-skills
+npx skills add stamate/codex-plugin-cc
+npx skills add K-Dense-AI/claude-scientific-skills
+```
+Uses the [Agent Skills](https://agentskills.io/) standard. Works with Claude Code, Codex, Cursor, Gemini CLI, and more.
+
+**Option B — One command with Python deps**:
+```bash
+cd your-research-project
 uv run https://raw.githubusercontent.com/stamate/ai-scientist-skills/main/scripts/setup.py --project
 ```
-Installs all 3 plugins at project scope + creates `.venv/` with Python deps. Run Claude from your project directory and go.
+Same as above + creates `.venv/` with Python deps (torch, numpy, etc.).
 
-**Option B — Global install**:
+**Option C — Global install**:
 ```bash
-uv run https://raw.githubusercontent.com/stamate/ai-scientist-skills/main/scripts/setup.py
+npx skills add stamate/ai-scientist-skills -g
+npx skills add stamate/codex-plugin-cc -g
+npx skills add K-Dense-AI/claude-scientific-skills -g
 ```
-Installs all 3 plugins globally. Available in all projects.
 
-**Option C — Clone for development**:
+**Option D — Clone for development**:
 ```bash
 uv run https://raw.githubusercontent.com/stamate/ai-scientist-skills/main/scripts/setup.py --local
 ```
-Clones repo + project-scoped plugins + `.venv/`. For contributing or modifying the skills.
 
 ### Verify
 
