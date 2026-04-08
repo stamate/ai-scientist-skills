@@ -319,20 +319,25 @@ Examples:
             uv = shutil.which("uv")
             if uv:
                 venv_path = USER_CWD / ".venv"
-                if not venv_path.exists():
-                    print(f"  Creating .venv/ in {USER_CWD}")
-                    subprocess.call([uv, "venv", str(venv_path)], timeout=60)
-                # Set VIRTUAL_ENV to force uv pip to target our venv
-                env = {**os.environ, "VIRTUAL_ENV": str(venv_path)}
-                rc = subprocess.call(
-                    [uv, "pip", "install", "-r", str(plugin_req)],
-                    timeout=600, env=env,
+                # Write a small shell script that runs outside uv's isolation
+                install_script = USER_CWD / ".install-deps.sh"
+                install_script.write_text(
+                    f'#!/bin/bash\n'
+                    f'set -e\n'
+                    f'cd "{USER_CWD}"\n'
+                    f'[ -d .venv ] || {uv} venv .venv\n'
+                    f'VIRTUAL_ENV="{venv_path}" {uv} pip install -r "{plugin_req}"\n'
+                    f'rm -f "{install_script}"\n'
                 )
+                install_script.chmod(0o755)
+                rc = subprocess.call(["/bin/bash", str(install_script)], timeout=600)
                 if rc == 0:
                     ok(f"Installed into {venv_path}/")
                 else:
-                    warn(f"Failed. Run manually:\n      VIRTUAL_ENV={venv_path} uv pip install -r {plugin_req}")
+                    warn(f"Failed. Run manually:\n      cd {USER_CWD} && VIRTUAL_ENV=.venv uv pip install -r {plugin_req}")
                     success = False
+                # Cleanup
+                install_script.unlink(missing_ok=True)
             else:
                 warn("uv not found")
                 success = False
