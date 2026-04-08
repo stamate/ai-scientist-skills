@@ -83,7 +83,7 @@ Parse from the user's message. If none of `--workshop`, `--idea`, or `--exp-dir`
    ```bash
    which codex 2>/dev/null && echo "CLI_OK" || echo "CLI_MISSING"
    # Check both global (~/.claude/plugins/) and project-local (.claude/plugins/) paths
-   (find "$HOME/.claude/plugins/cache" "$HOME/.claude/plugins" ".claude/plugins" -maxdepth 5 -path "*stamate-codex*" -o -path "*codex-plugin-cc*" 2>/dev/null | head -1 | grep -q .) && echo "PLUGIN_OK" || echo "PLUGIN_MISSING"
+   claude plugin list --json 2>/dev/null | python3 -c "import json,sys;any('codex' in p['id'] for p in json.load(sys.stdin)) and print('PLUGIN_OK') or print('PLUGIN_MISSING')" 2>/dev/null
    codex login status 2>/dev/null && echo "AUTH_OK" || echo "AUTH_MISSING"
    ```
    Also read the `codex.enabled` value from the loaded config (step 3 above).
@@ -107,7 +107,7 @@ Parse from the user's message. If none of `--workshop`, `--idea`, or `--exp-dir`
    Check if the claude-scientific-skills plugin is installed:
    ```bash
    # Check both global and project-local plugin paths for the research-lookup skill
-   find "$HOME/.claude/plugins/cache" "$HOME/.claude/plugins" ".claude/plugins" -maxdepth 8 -name "SKILL.md" -path "*research-lookup*" 2>/dev/null | head -1 | grep -q . && echo "SCIENTIFIC_SKILLS_OK" || echo "SCIENTIFIC_SKILLS_MISSING"
+   claude plugin list --json 2>/dev/null | python3 -c "import json,sys;any('scientific' in p['id'] for p in json.load(sys.stdin)) and print('SCIENTIFIC_SKILLS_OK') or print('SCIENTIFIC_SKILLS_MISSING')" 2>/dev/null
    ```
    This checks for the `/research-lookup` skill which is present in claude-scientific-skills and claude-scientific-writer plugins.
    Also read the `scientific_skills.enabled` value from the loaded config (step 3).

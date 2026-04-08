@@ -168,21 +168,18 @@ def check_codex() -> bool:
         print(f"  {WARN} Codex CLI not found — standard pipeline only (optional)")
         print(f"      Install: npm install -g @openai/codex")
         return False
-    # CLI found — check if the Claude Code plugin is also installed
-    # Search both global (~/.claude/plugins/) and project-local (.claude/plugins/)
+    # Check if the Claude Code plugin is installed via official API
     plugin_found = False
-    for root in [Path(".claude") / "plugins", Path.home() / ".claude" / "plugins" / "cache", Path.home() / ".claude" / "plugins"]:
-        if not root.exists():
-            continue
+    claude_bin = shutil.which("claude")
+    if claude_bin:
         try:
             result = subprocess.run(
-                ["find", str(root), "-maxdepth", "5",
-                 "-path", "*stamate-codex*", "-o", "-path", "*codex-plugin-cc*"],
-                capture_output=True, text=True, timeout=10,
+                [claude_bin, "plugin", "list", "--json"],
+                capture_output=True, text=True, timeout=15,
             )
-            if result.stdout.strip():
-                plugin_found = True
-                break
+            import json as _json
+            plugins = _json.loads(result.stdout) if result.returncode == 0 else []
+            plugin_found = any("codex" in p.get("id", "") for p in plugins)
         except Exception:
             pass
     if plugin_found:
@@ -207,22 +204,18 @@ def check_codex() -> bool:
 
 def check_scientific_skills() -> bool:
     """Check if claude-scientific-skills plugin is installed (optional enhancement)."""
-    # Check for key scientific skills (research-lookup, citation-management, scientific-writing)
-    # These may come from claude-scientific-skills or claude-scientific-writer plugins
-    # Search both global (~/.claude/plugins/) and project-local (.claude/plugins/)
+    # Check via official Claude plugin API
     plugin_found = False
-    for root in [Path(".claude") / "plugins", Path.home() / ".claude" / "plugins" / "cache", Path.home() / ".claude" / "plugins"]:
-        if not root.exists():
-            continue
+    claude_bin = shutil.which("claude")
+    if claude_bin:
         try:
             result = subprocess.run(
-                ["find", str(root), "-maxdepth", "8", "-name", "SKILL.md",
-                 "-path", "*research-lookup*"],
-                capture_output=True, text=True, timeout=10,
+                [claude_bin, "plugin", "list", "--json"],
+                capture_output=True, text=True, timeout=15,
             )
-            if result.stdout.strip():
-                plugin_found = True
-                break
+            import json as _json
+            plugins = _json.loads(result.stdout) if result.returncode == 0 else []
+            plugin_found = any("scientific" in p.get("id", "") for p in plugins)
         except Exception:
             pass
     if plugin_found:

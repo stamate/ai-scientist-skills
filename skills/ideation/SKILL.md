@@ -138,7 +138,7 @@ Each idea should:
 
 First, check if the claude-scientific-skills plugin is actually installed:
 ```bash
-find "$HOME/.claude/plugins/cache" "$HOME/.claude/plugins" ".claude/plugins" -maxdepth 8 -name "SKILL.md" -path "*research-lookup*" 2>/dev/null | head -1 | grep -q . && echo "SCIENTIFIC_PLUGIN_OK" || echo "SCIENTIFIC_PLUGIN_MISSING"
+claude plugin list --json 2>/dev/null | python3 -c "import json,sys;any('scientific' in p['id'] for p in json.load(sys.stdin)) and print('SCIENTIFIC_PLUGIN_OK') or print('SCIENTIFIC_PLUGIN_MISSING')" 2>/dev/null
 ```
 If `SCIENTIFIC_PLUGIN_MISSING`, skip this entire section silently.
 

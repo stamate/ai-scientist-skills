@@ -49,7 +49,7 @@ which codex 2>/dev/null && echo "CLI_OK" || echo "CLI_MISSING"
 
 Also verify the Claude Code plugin is registered and Codex is authenticated:
 ```bash
-(find "$HOME/.claude/plugins/cache" "$HOME/.claude/plugins" ".claude/plugins" -maxdepth 5 -path "*stamate-codex*" -o -path "*codex-plugin-cc*" 2>/dev/null | head -1 | grep -q .) && echo "PLUGIN_OK" || echo "PLUGIN_MISSING"
+claude plugin list --json 2>/dev/null | python3 -c "import json,sys;any('codex' in p['id'] for p in json.load(sys.stdin)) and print('PLUGIN_OK') or print('PLUGIN_MISSING')" 2>/dev/null
 codex login status 2>/dev/null && echo "AUTH_OK" || echo "AUTH_MISSING"
 ```
 
