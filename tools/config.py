@@ -273,6 +273,11 @@ def parse_config_args(argv=None) -> Config:
         default=[],
         help="Override config values (e.g. --set agent.num_workers=4 exec.timeout=1800)",
     )
+    parser.add_argument(
+        "--save",
+        action="store_true",
+        help="Save the result back to the config file (requires --config or writes to templates/bfts_config.yaml)",
+    )
     args = parser.parse_args(argv)
 
     overrides = {}
@@ -296,8 +301,33 @@ def parse_config_args(argv=None) -> Config:
 # ── Main (self-test) ─────────────────────────────────────────────────────────
 
 def main():
-    cfg = parse_config_args()
-    print(yaml.dump(asdict(cfg), default_flow_style=False, sort_keys=False))
+    args_parser = argparse.ArgumentParser(description="AI Scientist config loader")
+    args_parser.add_argument("--config", type=str, default=None)
+    args_parser.add_argument("--set", nargs="*", metavar="KEY=VALUE", default=[])
+    args_parser.add_argument("--save", action="store_true")
+    args = args_parser.parse_args()
+
+    overrides = {}
+    for kv in args.set:
+        key, _, val = kv.partition("=")
+        try:
+            val = json.loads(val)
+        except (json.JSONDecodeError, TypeError):
+            pass
+        parts = key.split(".")
+        d = overrides
+        for p in parts[:-1]:
+            d = d.setdefault(p, {})
+        d[parts[-1]] = val
+
+    cfg = load_config(args.config, overrides)
+    output = yaml.dump(asdict(cfg), default_flow_style=False, sort_keys=False)
+    print(output)
+
+    if args.save and args.set:
+        save_path = Path(args.config) if args.config else DEFAULT_CONFIG_PATH
+        save_config(cfg, str(save_path))
+        print(f"Saved to {save_path}", file=sys.stderr)
 
 
 if __name__ == "__main__":

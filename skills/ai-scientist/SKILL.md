@@ -53,7 +53,7 @@ curl -fsSL https://raw.githubusercontent.com/stamate/ai-scientist-skills/main/sc
    ```bash
    uv run ai-scientist-verify
    uv run ai-scientist-device --info
-   uv run ai-scientist-config --config <config_path>
+   uv run ai-scientist-config --config config.yaml
    ```
    If verify fails, **stop and guide the user** through fixing the issues.
 

@@ -98,7 +98,11 @@ fi
 
 # 5. Choose compute backend
 echo "[4/6] Compute backend..."
-current_backend=$(uv run ai-scientist-config --config templates/bfts_config.yaml 2>/dev/null | grep "backend:" | head -1 | awk '{print $2}' | tr -d "'" | tr -d '"')
+# Copy default config to project if not present
+if [ ! -f config.yaml ]; then
+    uv run ai-scientist-config --config templates/bfts_config.yaml > config.yaml 2>/dev/null
+fi
+current_backend=$(grep "backend:" config.yaml | head -1 | awk '{print $2}' | tr -d "'" | tr -d '"')
 
 if [ -z "$current_backend" ] || [ "$current_backend" = "''" ] || [ "$current_backend" = '""' ]; then
     echo ""
@@ -116,7 +120,7 @@ if [ -z "$current_backend" ] || [ "$current_backend" = "''" ] || [ "$current_bac
                 uv pip install modal --quiet 2>&1 || {
                     fail "Failed to install modal package"
                     warn "Defaulting to local"
-                    uv run ai-scientist-config --set compute.backend=local >/dev/null 2>&1
+                    uv run ai-scientist-config --config config.yaml --set compute.backend=local --save >/dev/null 2>&1
                     ok "Local (modal install failed)"
                     choice="done"
                 }
@@ -173,12 +177,12 @@ if [ -z "$current_backend" ] || [ "$current_backend" = "''" ] || [ "$current_bac
                     4) gpu="L4" ;;
                     *) gpu="A100" ;;
                 esac
-                uv run ai-scientist-config --set compute.backend=modal compute.modal.gpu="$gpu" >/dev/null 2>&1
+                uv run ai-scientist-config --config config.yaml --set compute.backend=modal compute.modal.gpu="$gpu" --save >/dev/null 2>&1
                 ok "Modal.com with $gpu GPU"
             fi
             ;;
         *)
-            uv run ai-scientist-config --set compute.backend=local >/dev/null 2>&1
+            uv run ai-scientist-config --config config.yaml --set compute.backend=local --save >/dev/null 2>&1
             ok "Local"
             ;;
     esac
@@ -206,13 +210,13 @@ This project uses `uv` with a `.venv` directory. **ALWAYS** prefix `ai-scientist
 ```bash
 uv run ai-scientist-verify
 uv run ai-scientist-device --info
-uv run ai-scientist-config --config templates/bfts_config.yaml
+uv run ai-scientist-config --config config.yaml
 uv run ai-scientist-state status <exp_dir>
 uv run ai-scientist-search "query" --limit 10
 uv run ai-scientist-metrics <file>
 uv run ai-scientist-latex compile <dir>
 uv run ai-scientist-pdf <file>
-uv run ai-scientist-budget --config templates/bfts_config.yaml
+uv run ai-scientist-budget --config config.yaml
 ```
 
 **Never** run `ai-scientist-*` commands without `uv run` — they are installed in `.venv/bin/` and won't be found otherwise.
