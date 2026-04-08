@@ -27,7 +27,7 @@ for cmd in uv claude; do
 done
 
 # 2. Create .venv and install Python tools
-echo "[1/5] Python tools..."
+echo "[1/6] Python tools..."
 if [ -d ".venv" ]; then
     warn ".venv exists — upgrading packages"
     uv pip install --upgrade "git+${REPO}" --quiet 2>&1 || {
@@ -47,7 +47,7 @@ fi
 ok "torch, numpy, matplotlib, seaborn, transformers, etc."
 
 # 3. Add and update marketplaces
-echo "[2/5] Marketplaces..."
+echo "[2/6] Marketplaces..."
 for repo in stamate/ai-scientist-skills stamate/codex-plugin-cc K-Dense-AI/claude-scientific-skills; do
     claude plugin marketplace add "$repo" 2>/dev/null || true
 done
@@ -57,7 +57,7 @@ done
 ok "Marketplaces added and updated"
 
 # 4. Install plugins at project scope
-echo "[3/5] Plugins..."
+echo "[3/6] Plugins..."
 core_plugins=(
     "ai-scientist@stm-ai-sci"
     "codex@stm-codex"

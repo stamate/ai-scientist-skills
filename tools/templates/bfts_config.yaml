@@ -51,9 +51,6 @@ agent:
     stage3_max_iters: 12   # Creative research — architecture changes
     stage4_max_iters: 18   # Ablation studies — systematic evaluation
 
-  # Fallback if stage-specific limits not provided
-  steps: 5
-
   # Validation settings
   k_fold_validation: 1     # Number of validation folds (1 = single split)
   data_preview: false       # Preview data before running experiments

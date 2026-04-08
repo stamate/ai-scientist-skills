@@ -74,7 +74,7 @@ curl -fsSL https://raw.githubusercontent.com/stamate/ai-scientist-skills/main/sc
    claude plugin list --json 2>/dev/null | python3 -c "import json,sys;any('codex' in p['id'] for p in json.load(sys.stdin)) and print('PLUGIN_OK') or print('PLUGIN_MISSING')" 2>/dev/null
    codex login status 2>/dev/null && echo "AUTH_OK" || echo "AUTH_MISSING"
    ```
-   Also read the `codex.enabled` value from the loaded config (step 2 above).
+   Also read the `codex.enabled` value from the loaded config (step 0 above).
 
    Determine `CODEX_ENABLED`:
    - If `--no-codex` is set: `CODEX_ENABLED=false` regardless of anything else
@@ -98,7 +98,7 @@ curl -fsSL https://raw.githubusercontent.com/stamate/ai-scientist-skills/main/sc
    claude plugin list --json 2>/dev/null | python3 -c "import json,sys;any('sci-skills' in p['id'] for p in json.load(sys.stdin)) and print('SCIENTIFIC_SKILLS_OK') or print('SCIENTIFIC_SKILLS_MISSING')" 2>/dev/null
    ```
    This checks for the `/research-lookup` skill which is present in claude-scientific-skills and claude-scientific-writer plugins.
-   Also read the `scientific_skills.enabled` value from the loaded config (step 2).
+   Also read the `scientific_skills.enabled` value from the loaded config (step 0).
 
    Determine `SCIENTIFIC_SKILLS_ENABLED`:
    - If `--no-scientific-skills` is set: `SCIENTIFIC_SKILLS_ENABLED=false`
