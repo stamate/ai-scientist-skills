@@ -122,17 +122,17 @@ if [ -z "$current_backend" ] || [ "$current_backend" = "''" ] || [ "$current_bac
                     4) gpu="L4" ;;
                     *) gpu="A100" ;;
                 esac
-                uv run ai-scientist-config --set compute.backend=modal compute.modal.gpu="$gpu" 2>/dev/null
+                uv run ai-scientist-config --set compute.backend=modal compute.modal.gpu="$gpu" >/dev/null 2>&1
                 ok "Modal.com with $gpu GPU"
             else
                 warn "modal CLI not found. Install: uv pip install modal && modal setup"
                 warn "Defaulting to local"
-                uv run ai-scientist-config --set compute.backend=local 2>/dev/null
+                uv run ai-scientist-config --set compute.backend=local >/dev/null 2>&1
                 ok "Local (modal not available)"
             fi
             ;;
         *)
-            uv run ai-scientist-config --set compute.backend=local 2>/dev/null
+            uv run ai-scientist-config --set compute.backend=local >/dev/null 2>&1
             ok "Local"
             ;;
     esac
