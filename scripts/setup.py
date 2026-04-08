@@ -129,21 +129,11 @@ def install_python_deps(project_root: Path) -> bool:
 # ── Claude plugins ─────────────────────────────────────────────────────────────
 
 
-OLD_MARKETPLACE_NAMES = {
-    "stm-ai-sci": ["ai-scientist-skills"],
-    "stm-codex": ["stamate-codex"],
-    "stm-sci-skills": ["claude-scientific-skills"],
-}
-
-
-def add_marketplace(repo: str, new_name: str, scope: str = "user") -> bool:
-    """Register a GitHub repo as a Claude Code marketplace, removing old names first."""
+def add_marketplace(repo: str, scope: str = "user") -> bool:
+    """Register a GitHub repo as a Claude Code marketplace."""
     claude = shutil.which("claude")
     if not claude:
         return False
-    # Remove old marketplace names that may be cached
-    for old_name in OLD_MARKETPLACE_NAMES.get(new_name, []):
-        run([claude, "plugin", "marketplace", "remove", old_name])
     result = run([claude, "plugin", "marketplace", "add", repo, "--scope", scope])
     return result.returncode == 0 or "already" in (result.stdout + result.stderr).lower()
 
@@ -154,8 +144,8 @@ def install_claude_plugin(marketplace: str, plugin: str, repo: str, scope: str =
         fail(f"Claude Code CLI not found — cannot install {plugin}")
         return False
 
-    # Step 1: Add the marketplace (removing old names if cached)
-    add_marketplace(repo, marketplace, scope)
+    # Step 1: Add the marketplace (repo) if not already registered
+    add_marketplace(repo, scope)
 
     # Step 2: Update marketplace to ensure latest version is cached
     run([claude, "plugin", "marketplace", "update", marketplace])
@@ -175,9 +165,9 @@ def install_claude_plugin(marketplace: str, plugin: str, repo: str, scope: str =
 def install_all_plugins(scope: str = "user") -> bool:
     # (marketplace_name, plugin_name, github_repo)
     plugins = [
-        ("stm-ai-sci", "ai-sci", "stamate/ai-scientist-skills"),
-        ("stm-codex", "codex", "stamate/codex-plugin-cc"),
-        ("stm-sci-skills", "sci-skills", "stamate/claude-scientific-skills"),
+        ("ai-scientist-skills", "ai-scientist", "stamate/ai-scientist-skills"),
+        ("stamate-codex", "codex", "stamate/codex-plugin-cc"),
+        ("claude-scientific-skills", "scientific-skills", "stamate/claude-scientific-skills"),
     ]
     step(f"Claude Code plugins ({len(plugins)}, scope: {scope})")
     all_ok = True
@@ -201,7 +191,7 @@ def find_plugin_requirements() -> Path | None:
             continue
         try:
             result = run(["find", str(search_root), "-maxdepth", "8",
-                          "-name", "requirements.txt", "-path", "*ai-sci*"])
+                          "-name", "requirements.txt", "-path", "*ai-scientist*"])
             if result.stdout.strip():
                 p = Path(result.stdout.strip().splitlines()[0])
                 if p.exists():

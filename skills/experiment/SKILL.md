@@ -32,7 +32,7 @@ Parse these from the user's message.
 ### 0. Locate Plugin Root
 
 ```bash
-export AISCIENTIST_ROOT=$(claude plugin list --json 2>/dev/null | python3 -c "import json,sys;print(next((p['installPath'] for p in json.load(sys.stdin) if p['id'].startswith('ai-sci@')),''))" 2>/dev/null)
+export AISCIENTIST_ROOT=$(claude plugin list --json 2>/dev/null | python3 -c "import json,sys;print(next((p['installPath'] for p in json.load(sys.stdin) if 'ai-scientist' in p['id']),''))" 2>/dev/null)
 [ -z "$AISCIENTIST_ROOT" ] && echo "ERROR: ai-scientist plugin not found"
 echo "Plugin root: $AISCIENTIST_ROOT"
 ```
