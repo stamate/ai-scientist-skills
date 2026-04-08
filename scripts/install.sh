@@ -110,7 +110,62 @@ if [ -z "$current_backend" ] || [ "$current_backend" = "''" ] || [ "$current_bac
     read -r choice < /dev/tty
     case "$choice" in
         2|modal|Modal)
-            if command -v modal &>/dev/null; then
+            # Install modal if not present
+            if ! command -v modal &>/dev/null; then
+                echo "  Installing modal..."
+                uv pip install modal --quiet 2>&1 || {
+                    fail "Failed to install modal package"
+                    warn "Defaulting to local"
+                    uv run ai-scientist-config --set compute.backend=local >/dev/null 2>&1
+                    ok "Local (modal install failed)"
+                    choice="done"
+                }
+            fi
+
+            if [ "$choice" != "done" ]; then
+                # Authenticate
+                if ! modal profile current &>/dev/null; then
+                    echo ""
+                    echo "  Modal authentication required."
+                    echo "  Get a token at: https://modal.com/settings/tokens"
+                    echo ""
+                    echo "    1) Enter token manually"
+                    echo "    2) Open browser (modal setup)"
+                    echo "    3) Skip — I'll set it up later"
+                    echo ""
+                    printf "  Choose [1-3]: "
+                    read -r auth_choice < /dev/tty
+                    case "$auth_choice" in
+                        1)
+                            printf "  Token ID: "
+                            read -r token_id < /dev/tty
+                            printf "  Token Secret: "
+                            read -r token_secret < /dev/tty
+                            # Save to .env for this project
+                            echo "MODAL_TOKEN_ID=$token_id" >> .env
+                            echo "MODAL_TOKEN_SECRET=$token_secret" >> .env
+                            # Also set for current session
+                            export MODAL_TOKEN_ID="$token_id"
+                            export MODAL_TOKEN_SECRET="$token_secret"
+                            if modal profile current &>/dev/null; then
+                                ok "Modal authenticated via token"
+                            else
+                                warn "Token may be invalid — verify with: modal profile current"
+                            fi
+                            ;;
+                        2)
+                            echo "  Running modal setup (opens browser)..."
+                            modal setup < /dev/tty || warn "modal setup failed"
+                            ;;
+                        *)
+                            warn "Skipped auth — run 'modal setup' before using Modal"
+                            ;;
+                    esac
+                else
+                    ok "Modal already authenticated"
+                fi
+
+                # Choose GPU
                 echo ""
                 echo "  Which GPU?"
                 echo "    1) A100 (default)  2) H100  3) T4  4) L4"
@@ -124,11 +179,6 @@ if [ -z "$current_backend" ] || [ "$current_backend" = "''" ] || [ "$current_bac
                 esac
                 uv run ai-scientist-config --set compute.backend=modal compute.modal.gpu="$gpu" >/dev/null 2>&1
                 ok "Modal.com with $gpu GPU"
-            else
-                warn "modal CLI not found. Install: uv pip install modal && modal setup"
-                warn "Defaulting to local"
-                uv run ai-scientist-config --set compute.backend=local >/dev/null 2>&1
-                ok "Local (modal not available)"
             fi
             ;;
         *)
