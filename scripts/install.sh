@@ -96,16 +96,60 @@ if [ $core_ok -lt 3 ]; then
     echo "    claude plugin install scientific-skills@claude-scientific-skills --scope project"
 fi
 
-# 5. Verify installation
-echo "[4/5] Verifying..."
+# 5. Choose compute backend
+echo "[4/6] Compute backend..."
+current_backend=$(uv run ai-scientist-config --config templates/bfts_config.yaml 2>/dev/null | grep "backend:" | head -1 | awk '{print $2}' | tr -d "'" | tr -d '"')
+
+if [ -z "$current_backend" ] || [ "$current_backend" = "''" ] || [ "$current_backend" = '""' ]; then
+    echo ""
+    echo "  Where would you like to run experiments?"
+    echo "    1) Local — use this machine"
+    echo "    2) Modal.com — cloud GPUs (A100, H100, T4, etc.)"
+    echo ""
+    printf "  Choose [1/2] (default: 1): "
+    read -r choice < /dev/tty
+    case "$choice" in
+        2|modal|Modal)
+            if command -v modal &>/dev/null; then
+                echo ""
+                echo "  Which GPU?"
+                echo "    1) A100 (default)  2) H100  3) T4  4) L4"
+                printf "  Choose [1-4] (default: 1): "
+                read -r gpu_choice < /dev/tty
+                case "$gpu_choice" in
+                    2) gpu="H100" ;;
+                    3) gpu="T4" ;;
+                    4) gpu="L4" ;;
+                    *) gpu="A100" ;;
+                esac
+                uv run ai-scientist-config --set compute.backend=modal compute.modal.gpu="$gpu" 2>/dev/null
+                ok "Modal.com with $gpu GPU"
+            else
+                warn "modal CLI not found. Install: uv pip install modal && modal setup"
+                warn "Defaulting to local"
+                uv run ai-scientist-config --set compute.backend=local 2>/dev/null
+                ok "Local (modal not available)"
+            fi
+            ;;
+        *)
+            uv run ai-scientist-config --set compute.backend=local 2>/dev/null
+            ok "Local"
+            ;;
+    esac
+else
+    ok "Already set: $current_backend"
+fi
+
+# 6. Verify installation
+echo "[5/6] Verifying..."
 if uv run ai-scientist-verify --quiet 2>/dev/null; then
     ok "Environment check passed"
 else
     warn "Some checks failed — run 'uv run ai-scientist-verify' for details"
 fi
 
-# 6. Create/update CLAUDE.md
-echo "[5/5] CLAUDE.md..."
+# 7. Create/update CLAUDE.md
+echo "[6/6] CLAUDE.md..."
 cat > CLAUDE.md << 'CLAUDEMD'
 # AI Scientist Skills
 

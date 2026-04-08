@@ -57,34 +57,15 @@ curl -fsSL https://raw.githubusercontent.com/stamate/ai-scientist-skills/main/sc
    ```
    If verify fails, **stop and guide the user** through fixing the issues.
 
-1. **STOP — Choose compute backend**:
+   The config includes `compute.backend` (set during install: `local` or `modal`). Report the compute backend in the Phase 0 summary. If `modal`, experiments will run on Modal.com cloud GPUs.
 
-   Look at the config output from step 0. Find `compute:` → `backend:`.
-
-   **If `backend` is empty (`""`) or missing: you MUST ask the user this question NOW. Do NOT run any more commands until they answer.**
-
-   Ask:
-
-   > **Where would you like to run experiments?**
-   > 1. **Local** — use this machine (MPS/CUDA/CPU detected above)
-   > 2. **Modal.com** — cloud GPUs (A100, H100, T4, etc.)
-
-   **WAIT for the user's response.** Do not proceed.
-
-   After the user answers:
-
-   - **Local**: `uv run ai-scientist-config --set compute.backend=local`
-   - **Modal**: Check `which modal` and `modal profile current`. If missing, tell user to run `uv pip install modal && modal setup`. Then ask GPU preference (A100 default). Save: `uv run ai-scientist-config --set compute.backend=modal compute.modal.gpu=<gpu>`
-
-   **If `backend` is already `"local"` or `"modal"`**: skip the question, just report it.
-
-2. **Check LaTeX** (optional, only needed for writeup):
+1. **Check LaTeX** (optional, only needed for writeup):
    ```bash
    uv run ai-scientist-latex check
    ```
    Warn if pdflatex or bibtex is missing — the experiment can still run, paper generation will be skipped.
 
-3. **Detect Codex** (optional enhancement):
+2. **Detect Codex** (optional enhancement):
 
    Check four conditions — CLI binary, Claude Code plugin, authentication, and config toggle:
    ```bash
@@ -109,7 +90,7 @@ curl -fsSL https://raw.githubusercontent.com/stamate/ai-scientist-skills/main/sc
    - If CLI + plugin found but auth failed: "Codex installed but not authenticated — run: codex login"
    - If `CODEX_ENABLED=false`: "Codex not enabled — using standard pipeline"
 
-4. **Detect claude-scientific-skills** (optional enhancement):
+3. **Detect claude-scientific-skills** (optional enhancement):
 
    Check if the claude-scientific-skills plugin is installed:
    ```bash
