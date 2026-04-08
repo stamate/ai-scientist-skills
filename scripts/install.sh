@@ -127,9 +127,9 @@ if [ -z "$current_backend" ] || [ "$current_backend" = "''" ] || [ "$current_bac
                 if ! modal profile current &>/dev/null; then
                     echo ""
                     echo "  Modal authentication required."
-                    echo "  Get a token at: https://modal.com/settings/tokens"
+                    echo "  Get your token command at: https://modal.com/settings/tokens"
                     echo ""
-                    echo "    1) Enter token manually"
+                    echo "    1) Paste your 'modal token set' command"
                     echo "    2) Open browser (modal setup)"
                     echo "    3) Skip — I'll set it up later"
                     echo ""
@@ -137,20 +137,16 @@ if [ -z "$current_backend" ] || [ "$current_backend" = "''" ] || [ "$current_bac
                     read -r auth_choice < /dev/tty
                     case "$auth_choice" in
                         1)
-                            printf "  Token ID: "
-                            read -r token_id < /dev/tty
-                            printf "  Token Secret: "
-                            read -r token_secret < /dev/tty
-                            # Save to .env for this project
-                            echo "MODAL_TOKEN_ID=$token_id" >> .env
-                            echo "MODAL_TOKEN_SECRET=$token_secret" >> .env
-                            # Also set for current session
-                            export MODAL_TOKEN_ID="$token_id"
-                            export MODAL_TOKEN_SECRET="$token_secret"
+                            echo ""
+                            echo "  Paste the command from Modal (e.g., modal token set --token-id ak-xxx --token-secret as-xxx):"
+                            printf "  > "
+                            read -r token_cmd < /dev/tty
+                            # Run the command directly
+                            eval "$token_cmd" 2>&1 || true
                             if modal profile current &>/dev/null; then
-                                ok "Modal authenticated via token"
+                                ok "Modal authenticated"
                             else
-                                warn "Token may be invalid — verify with: modal profile current"
+                                warn "Auth may have failed — verify with: modal profile current"
                             fi
                             ;;
                         2)
