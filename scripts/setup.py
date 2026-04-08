@@ -147,15 +147,18 @@ def install_claude_plugin(marketplace: str, plugin: str, repo: str, scope: str =
     # Step 1: Add the marketplace (repo) if not already registered
     add_marketplace(repo, scope)
 
-    # Step 2: Install the plugin from that marketplace
+    # Step 2: Update marketplace to ensure latest version is cached
+    run([claude, "plugin", "marketplace", "update", marketplace])
+
+    # Step 3: Install the plugin from that marketplace (use run_live for visibility)
     plugin_ref = f"{plugin}@{marketplace}"
-    result = run([claude, "plugin", "install", plugin_ref, "--scope", scope])
-    out = result.stdout + result.stderr
-    if result.returncode == 0 or "already" in out.lower():
+    print(f"  Installing {plugin_ref}...")
+    rc = run_live([claude, "plugin", "install", plugin_ref, "--scope", scope])
+    if rc == 0:
         ok(f"{plugin_ref} (scope: {scope})")
         return True
 
-    fail(f"{plugin_ref} — {out.strip()[:200]}")
+    fail(f"{plugin_ref} (exit code {rc})")
     return False
 
 
