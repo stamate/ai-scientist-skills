@@ -227,7 +227,61 @@ When enabled, augment the review with a rigorous evidence quality assessment:
 
 This assessment adds scientific rigor to the review without changing the NeurIPS-format scores from steps 1-8.
 
-### 10. Codex Panel Review (Optional Enhancement)
+### 10. Claude Panel Review
+
+Run a second, multi-perspective review using 3 independent reviewer personas. This mirrors the Codex panel and gives you comparable outputs to cross-reference.
+
+Launch **3 parallel agents**, each with a distinct persona. Each agent receives the paper text and produces a review in the same JSON format as step 5.
+
+**Agent 1 — The Empiricist** (focus: experimental rigor):
+> You are a meticulous experimentalist. You care most about reproducibility, statistical validity, proper baselines, ablation studies, and whether the results actually support the claims. You are skeptical of results without error bars, missing baselines, or cherry-picked metrics.
+
+**Agent 2 — The Theorist** (focus: conceptual soundness):
+> You are a theoretical researcher. You care most about whether the approach is principled, the problem formulation is sound, the connections to prior work are clear, and the contribution advances understanding. You are skeptical of ad-hoc methods without motivation.
+
+**Agent 3 — The Practitioner** (focus: real-world impact):
+> You are an applied ML researcher. You care most about whether the method actually works in practice, scales to real problems, is easy to reproduce and adopt, and whether the paper provides sufficient implementation detail. You are skeptical of toy experiments on MNIST.
+
+Each agent produces a review JSON (same format as step 5). Save them:
+```bash
+cat > <output_dir>/claude_panel_empiricist.json << 'JSON_EOF'
+<review JSON>
+JSON_EOF
+
+cat > <output_dir>/claude_panel_theorist.json << 'JSON_EOF'
+<review JSON>
+JSON_EOF
+
+cat > <output_dir>/claude_panel_practitioner.json << 'JSON_EOF'
+<review JSON>
+JSON_EOF
+```
+
+**Synthesize** the 3 reviews into a panel summary:
+- Where do all 3 agree? (consensus strengths/weaknesses)
+- Where do they disagree? (flag for author response)
+- Aggregated scores (average across personas)
+- Overall panel recommendation (accept/reject with confidence)
+
+Save the synthesis:
+```bash
+cat > <output_dir>/claude_panel_synthesis.json << 'JSON_EOF'
+{
+  "consensus_strengths": ["..."],
+  "consensus_weaknesses": ["..."],
+  "disagreements": ["..."],
+  "aggregated_scores": {
+    "Originality": 3, "Quality": 3, "Clarity": 3, "Significance": 2,
+    "Soundness": 3, "Presentation": 3, "Contribution": 2,
+    "Overall": 5, "Confidence": 4
+  },
+  "panel_decision": "Accept or Reject",
+  "priority_actions": ["..."]
+}
+JSON_EOF
+```
+
+### 11. Codex Panel Review (Optional Enhancement)
 
 **Skip this step if** Codex is not available, the user specified `--no-codex`, or `codex.enabled` is `"false"` in config.
 
@@ -289,12 +343,35 @@ If `CODEX_AVAILABLE`, enhance the review with a Codex panel:
    MD_EOF
    ```
 
-4. **Report Codex additions** alongside the Claude review:
+4. **Report Codex additions** alongside the Claude reviews:
    - Codex panel recommendation and aggregated scores
    - Any code-methods alignment issues found
-   - Note: The Claude review (steps 1-8) is the primary review; Codex adds a second opinion
 
-If Codex is not available, skip silently — the Claude review from steps 1-8 is complete on its own.
+If Codex is not available, skip silently — the Claude reviews are complete on their own.
+
+### 12. Cross-Review Comparison
+
+Compare the 3 review layers and produce a final summary:
+
+1. **Claude single review** (step 5) — baseline assessment
+2. **Claude panel** (step 10) — multi-perspective consensus
+3. **Codex panel** (step 11) — independent external review + code alignment
+
+For each score dimension, show all 3 ratings side-by-side. Flag any dimension where reviews diverge by >2 points — these are areas of genuine uncertainty.
+
+Save the comparison:
+```bash
+cat > <output_dir>/review_comparison.json << 'JSON_EOF'
+{
+  "claude_single": { "Overall": <N>, "Decision": "..." },
+  "claude_panel": { "Overall": <N>, "Decision": "..." },
+  "codex_panel": { "Overall": <N>, "Decision": "..." },
+  "consensus_decision": "Accept or Reject",
+  "high_divergence_areas": ["..."],
+  "final_recommendation": "..."
+}
+JSON_EOF
+```
 
 ## Review Standards
 
