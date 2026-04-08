@@ -110,6 +110,22 @@ curl -fsSL https://raw.githubusercontent.com/stamate/ai-scientist-skills/main/sc
    - If `SCIENTIFIC_SKILLS_ENABLED=true`: "Scientific skills detected — enhanced literature, writing, and review enabled"
    - If not found: "claude-scientific-skills not found — using standard pipeline (install for 78+ database access, DOI verification, and IMRAD writing)"
 
+### Phase 0 Summary
+
+After all checks, print a summary that MUST include ALL of these lines:
+```
+  Python:      ✓ <version>
+  Device:      ✓ <device>
+  Compute:     ✓ <local or Modal.com with GPU type>
+  Config:      ✓ <stages/iters/workers>
+  LaTeX:       ✓ or ! <status>
+  S2 API:      ✓ or ! <status>
+  Codex:       ✓ or ✗ <status>
+  Scientific:  ✓ or ✗ <status>
+```
+
+Read `compute.backend` and `compute.modal.gpu` from the config output to fill the Compute line. If `backend` is `modal`, show "Modal.com with <gpu> GPU". If `local`, show "Local (<device>)".
+
 ### Dry-Run Check
 
 **Only if** `--dry-run` is set. After Phase 0 completes, perform extended validation and stop:
