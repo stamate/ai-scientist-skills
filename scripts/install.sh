@@ -31,13 +31,11 @@ echo "[2/4] Adding marketplaces..."
 claude plugin marketplace add stamate/ai-scientist-skills 2>/dev/null || true
 claude plugin marketplace add stamate/codex-plugin-cc 2>/dev/null || true
 claude plugin marketplace add K-Dense-AI/claude-scientific-skills 2>/dev/null || true
-# Extras: scientific writer, superpowers, context7, astral, code-review, claude-hud
-claude plugin marketplace add K-Dense-AI/claude-scientific-writer 2>/dev/null || true
+# Extras: superpowers, context7, astral, code-review, claude-hud
 # Update all to ensure latest versions
 claude plugin marketplace update stm-ai-sci 2>/dev/null || true
 claude plugin marketplace update stm-codex 2>/dev/null || true
 claude plugin marketplace update claude-scientific-skills 2>/dev/null || true
-claude plugin marketplace update claude-scientific-writer 2>/dev/null || true
 claude plugin marketplace update claude-plugins-official 2>/dev/null || true
 claude plugin marketplace update astral-sh 2>/dev/null || true
 claude plugin marketplace update claude-hud 2>/dev/null || true
@@ -49,8 +47,6 @@ echo "[3/4] Installing plugins..."
 claude plugin install ai-scientist@stm-ai-sci --scope project 2>/dev/null || true
 claude plugin install codex@stm-codex --scope project 2>/dev/null || true
 claude plugin install scientific-skills@claude-scientific-skills --scope project 2>/dev/null || true
-# Enhanced writing + citations
-claude plugin install claude-scientific-writer@claude-scientific-writer --scope project 2>/dev/null || true
 # Planning, parallel agents, brainstorming
 claude plugin install superpowers@claude-plugins-official --scope project 2>/dev/null || true
 # Library docs lookup for experiment code
@@ -94,7 +90,6 @@ uv run ai-scientist-budget --config templates/bfts_config.yaml
 - **ai-scientist** — Full research pipeline (ideation, experiment, writeup, review)
 - **codex** — Codex delegation and code review
 - **scientific-skills** — 134 scientific skills (databases, tools, analysis)
-- **claude-scientific-writer** — Enhanced scientific writing and citations
 - **superpowers** — Planning, parallel agents, brainstorming
 - **context7** — Library and framework documentation lookup
 - **code-review** — Code review (complements Codex reviews)
