@@ -319,11 +319,15 @@ Examples:
                 if not venv_path.exists():
                     print(f"  Creating .venv/ in {Path.cwd()}")
                     run_live([uv, "venv", str(venv_path)])
-                rc = run_live([uv, "pip", "install", "-r", str(plugin_req)])
+                # Explicitly target the project's .venv, not uv's temp env
+                pip_python = str(venv_path / "bin" / "python")
+                rc = run_live([uv, "pip", "install",
+                               "--python", pip_python,
+                               "-r", str(plugin_req)])
                 if rc == 0:
-                    ok(f"Installed into .venv/")
+                    ok(f"Installed into {venv_path}/")
                 else:
-                    warn(f"Failed. Run: uv pip install -r {plugin_req}")
+                    warn(f"Failed. Run: uv pip install --python {pip_python} -r {plugin_req}")
                     success = False
             else:
                 warn("uv not found")
