@@ -23,9 +23,6 @@ Parse from the user's message.
 ### 0. Locate Plugin Root
 
 ```bash
-export AISCIENTIST_ROOT=$(claude plugin list --json 2>/dev/null | python3 -c "import json,sys;print(next((p['installPath'] for p in json.load(sys.stdin) if 'ai-scientist' in p['id']),''))" 2>/dev/null)
-[ -z "$AISCIENTIST_ROOT" ] && echo "ERROR: ai-scientist plugin not found"
-echo "Plugin root: $AISCIENTIST_ROOT"
 ```
 
 ### 1. Load Experiment Context
@@ -37,8 +34,7 @@ cat <exp_dir>/idea.md
 
 # Experiment state
 uv run python3 -c "
-import json, sys, os
-sys.path.insert(0, os.environ.get('AISCIENTIST_ROOT', '.'))
+import json
 from tools.state_manager import load_experiment_state
 state = load_experiment_state('<exp_dir>')
 print(json.dumps(state, indent=2))
@@ -50,7 +46,7 @@ Read the best experiment code from the final completed stage. Read stage summari
 ### 2. Setup LaTeX Directory
 
 ```bash
-uv run python3 "$AISCIENTIST_ROOT/tools/latex_compiler.py" setup <exp_dir>/latex --type <icbinb|icml>
+ai-scientist-latex setup <exp_dir>/latex --type <icbinb|icml>
 ```
 
 Create empty references file:
@@ -68,7 +64,7 @@ cp <exp_dir>/figures/*.png <exp_dir>/figures/*.pdf <exp_dir>/latex/figures/ 2>/d
 
 First, check search backend availability:
 ```bash
-uv run python3 "$AISCIENTIST_ROOT/tools/search.py" check
+ai-scientist-search check
 ```
 
 If S2 API is unreachable or rate-limited, **use WebSearch exclusively** for all citation searches below. Do not waste rounds retrying a broken S2 backend.
@@ -79,7 +75,7 @@ For each round:
 2. Formulate 2-3 targeted search queries for the needed citations
 3. Search for papers — try S2 first, fall back to WebSearch immediately on failure:
    ```bash
-   uv run python3 "$AISCIENTIST_ROOT/tools/search.py" "<citation query>" --limit 5 --json
+   ai-scientist-search "<citation query>" --limit 5 --json
    ```
    If this returns no results or exits with error, use **WebSearch** to search `arxiv.org`, `scholar.google.com`, or `semanticscholar.org` directly. Extract title, authors, year, venue from the search results.
 
@@ -153,12 +149,12 @@ Same structure plus:
 ### 6. Compile and Check
 
 ```bash
-uv run python3 "$AISCIENTIST_ROOT/tools/latex_compiler.py" compile <exp_dir>/latex --main template.tex
+ai-scientist-latex compile <exp_dir>/latex --main template.tex
 ```
 
 Check for errors:
 ```bash
-uv run python3 "$AISCIENTIST_ROOT/tools/latex_compiler.py" pages <exp_dir>/latex/template.pdf
+ai-scientist-latex pages <exp_dir>/latex/template.pdf
 ```
 
 If there are LaTeX errors, read the log file and fix them:
@@ -208,7 +204,7 @@ If `SCIENTIFIC_PLUGIN_MISSING`, skip this entire section silently.
 Then check config:
 ```bash
 uv run python3 -c "
-import yaml, os, sys; sys.path.insert(0, os.environ.get('AISCIENTIST_ROOT', '.'))
+import yaml
 try:
     cfg = yaml.safe_load(open('<exp_dir>/config.yaml'))
     enabled = str(cfg.get('scientific_skills', {}).get('enabled', 'auto')).lower()

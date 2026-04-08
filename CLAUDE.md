@@ -29,31 +29,31 @@ This project provides a complete AI research automation pipeline as Claude Code 
 
 ## Tool Usage
 
-When running from a cloned repo, tools are invoked via `uv run python3 tools/<module>.py`. When installed as a plugin, skills discover the plugin root first and use absolute paths (`"$AISCIENTIST_ROOT/tools/<module>.py"`). See any skill's "Locate Plugin Root" step for the discovery pattern.
+Tools are installed as CLI commands (e.g., `ai-scientist-verify`, `ai-scientist-state`, `ai-scientist-search`). The `tools` Python package is importable directly — use `from tools import TEMPLATES_DIR` for template paths.
 
-Tool reference (from project root):
+CLI commands (installed via `uv pip install git+https://github.com/stamate/ai-scientist-skills.git`):
 
 ```bash
-uv run python3 tools/verify_setup.py              # Verify all prerequisites
-uv run python3 tools/device_utils.py              # Detect CUDA/MPS/CPU
-uv run python3 tools/search.py "query"            # Search papers (S2 API)
-uv run python3 tools/state_manager.py init --idea FILE --config FILE  # Init experiment
-uv run python3 tools/state_manager.py status DIR            # Check experiment state
-uv run python3 tools/state_manager.py select-nodes DIR STAGE # Pick nodes to expand
-uv run python3 tools/state_manager.py add-node DIR STAGE ... # Record experiment result
-uv run python3 tools/state_manager.py best-node DIR STAGE   # Get best node
-uv run python3 tools/state_manager.py save-best DIR STAGE   # Save best node code to file
-uv run python3 tools/state_manager.py transition DIR S1 S2  # Move to next stage
-uv run python3 tools/state_manager.py stage-briefing DIR STAGE  # Stage handoff summary
-uv run python3 tools/state_manager.py journal-summary DIR STAGE # Stage progress counts
-uv run python3 tools/state_manager.py node-info DIR STAGE ID    # Node details
-uv run python3 tools/state_manager.py update-state DIR ...      # Update experiment state
-uv run python3 tools/metric_parser.py FILE        # Parse metrics from output
-uv run python3 tools/latex_compiler.py compile DIR # Compile LaTeX to PDF
-uv run python3 tools/pdf_reader.py FILE           # Extract PDF text
-uv run python3 tools/config.py --config FILE      # Load/display config
-uv run python3 tools/config.py --set KEY=VAL ...  # Override config values (e.g. codex.enabled=false)
-uv run python3 tools/budget_estimator.py --config FILE  # Estimate token usage and cost
+ai-scientist-verify                              # Verify all prerequisites
+ai-scientist-device --info                       # Detect CUDA/MPS/CPU
+ai-scientist-search "query" --limit 10           # Search papers (S2 API)
+ai-scientist-state init --idea FILE --config FILE  # Init experiment
+ai-scientist-state status DIR                    # Check experiment state
+ai-scientist-state select-nodes DIR STAGE        # Pick nodes to expand
+ai-scientist-state add-node DIR STAGE ...        # Record experiment result
+ai-scientist-state best-node DIR STAGE           # Get best node
+ai-scientist-state save-best DIR STAGE           # Save best node code to file
+ai-scientist-state transition DIR S1 S2          # Move to next stage
+ai-scientist-state stage-briefing DIR STAGE      # Stage handoff summary
+ai-scientist-state journal-summary DIR STAGE     # Stage progress counts
+ai-scientist-state node-info DIR STAGE ID        # Node details
+ai-scientist-state update-state DIR ...          # Update experiment state
+ai-scientist-metrics FILE                        # Parse metrics from output
+ai-scientist-latex compile DIR                   # Compile LaTeX to PDF
+ai-scientist-pdf FILE                            # Extract PDF text
+ai-scientist-config --config FILE                # Load/display config
+ai-scientist-config --set KEY=VAL ...            # Override config values
+ai-scientist-budget --config FILE                # Estimate token usage and cost
 ```
 
 ## Environment

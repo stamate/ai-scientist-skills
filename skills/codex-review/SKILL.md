@@ -34,9 +34,6 @@ When called from the orchestrator, map `--type` to `--venue`:
 ### 0. Locate Plugin Root
 
 ```bash
-export AISCIENTIST_ROOT=$(claude plugin list --json 2>/dev/null | python3 -c "import json,sys;print(next((p['installPath'] for p in json.load(sys.stdin) if 'ai-scientist' in p['id']),''))" 2>/dev/null)
-[ -z "$AISCIENTIST_ROOT" ] && echo "ERROR: ai-scientist plugin not found"
-echo "Plugin root: $AISCIENTIST_ROOT"
 ```
 
 ### 1. Check Codex Availability
@@ -73,7 +70,7 @@ Use the Read tool to read the PDF file at `<pdf_path>`. This extracts the paper 
 
 Also extract text for piping:
 ```bash
-uv run python3 "$AISCIENTIST_ROOT/tools/pdf_reader.py" <pdf_path>
+ai-scientist-pdf <pdf_path>
 ```
 
 ### 3. Run Codex Paper Review
@@ -82,10 +79,10 @@ Invoke the Codex paper review command in a single pass. If `--exp-dir` is provid
 
 **Locate the promoted best solution** (if `--exp-dir` provided and alignment enabled):
 ```bash
-uv run python3 "$AISCIENTIST_ROOT/tools/state_manager.py" save-best <exp_dir> stage4_ablation 2>/dev/null || \
-uv run python3 "$AISCIENTIST_ROOT/tools/state_manager.py" save-best <exp_dir> stage3_creative 2>/dev/null || \
-uv run python3 "$AISCIENTIST_ROOT/tools/state_manager.py" save-best <exp_dir> stage2_baseline 2>/dev/null || \
-uv run python3 "$AISCIENTIST_ROOT/tools/state_manager.py" save-best <exp_dir> stage1_initial
+ai-scientist-state save-best <exp_dir> stage4_ablation 2>/dev/null || \
+ai-scientist-state save-best <exp_dir> stage3_creative 2>/dev/null || \
+ai-scientist-state save-best <exp_dir> stage2_baseline 2>/dev/null || \
+ai-scientist-state save-best <exp_dir> stage1_initial
 ```
 This writes the best node's code and prints the file path. Use the printed directory (e.g., `<exp_dir>/state/stage4_ablation/`) as `<best_solution_dir>`. If all stages fail, skip alignment and log a warning.
 

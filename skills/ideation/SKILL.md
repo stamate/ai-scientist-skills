@@ -24,9 +24,6 @@ Parse these from the user's message.
 ### 0. Locate Plugin Root
 
 ```bash
-export AISCIENTIST_ROOT=$(claude plugin list --json 2>/dev/null | python3 -c "import json,sys;print(next((p['installPath'] for p in json.load(sys.stdin) if 'ai-scientist' in p['id']),''))" 2>/dev/null)
-[ -z "$AISCIENTIST_ROOT" ] && echo "ERROR: ai-scientist plugin not found"
-echo "Plugin root: $AISCIENTIST_ROOT"
 ```
 
 ### 1. Load Context
@@ -53,7 +50,7 @@ Think of a novel research direction within the workshop scope. Consider:
 
 Before finalizing, search for related work to check novelty:
 ```bash
-uv run python3 "$AISCIENTIST_ROOT/tools/search.py" "<your proposed topic keywords>" --limit 10 --json
+ai-scientist-search "<your proposed topic keywords>" --limit 10 --json
 ```
 
 If S2 returns no results, use the WebSearch tool to search `arxiv.org` for related papers.
@@ -107,8 +104,9 @@ Collect all ideas into a JSON array and save to the output file:
 Also validate against the schema:
 ```bash
 uv run python3 -c "
-import json, os
-with open(os.path.join(os.environ.get('AISCIENTIST_ROOT', '.'), 'templates', 'idea_schema.json')) as f:
+import json
+from tools import TEMPLATES_DIR
+with open(str(TEMPLATES_DIR / 'idea_schema.json')) as f:
     schema = json.load(f)
 # Basic validation of required fields
 required = schema['required']
@@ -145,8 +143,8 @@ If `SCIENTIFIC_PLUGIN_MISSING`, skip this entire section silently.
 Then check if the feature is enabled in the active config (use `--config` path if provided, else default):
 ```bash
 uv run python3 -c "
-import yaml, os
-_root = os.environ.get('AISCIENTIST_ROOT', '.')
+import yaml
+from tools import TEMPLATES_DIR
 try:
     cfg = yaml.safe_load(open('<config_path_or_templates/bfts_config.yaml>'))
     enabled = str(cfg.get('scientific_skills', {}).get('enabled', 'auto')).lower()
@@ -156,13 +154,13 @@ try:
 except: print('scientific_skills.enabled=auto\nscientific_skills.enhanced_literature=True')
 " 2>/dev/null
 ```
-Where `<config_path_or_templates/bfts_config.yaml>` is the `--config` argument if provided, otherwise `"$AISCIENTIST_ROOT/templates/bfts_config.yaml"`.
+Where `<config_path_or_templates/bfts_config.yaml>` is the `--config` argument if provided, otherwise the default template at `str(TEMPLATES_DIR / 'bfts_config.yaml')`.
 If `enabled` is `false` or `enhanced_literature` is `false`, skip this section.
 
 When enabled, run all available search backends in parallel using Agent subagents for faster results:
 
 ```
-Agent 1: uv run python3 "$AISCIENTIST_ROOT/tools/search.py" "<topic keywords>" --limit 10 --json
+Agent 1: ai-scientist-search "<topic keywords>" --limit 10 --json
 Agent 2: /research-lookup "<topic keywords and hypothesis>"
 Agent 3: /paper-lookup "<specific query>" (if available — skip silently if not)
 ```

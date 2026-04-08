@@ -627,7 +627,7 @@ def find_duplicate_node(journal: dict, code: str) -> Optional[dict]:
 
 # ── CLI ──────────────────────────────────────────────────────────────────────
 
-if __name__ == "__main__":
+def main():
     import argparse
 
     parser = argparse.ArgumentParser(
@@ -936,3 +936,7 @@ examples:
             print("Self-test PASSED")
     else:
         parser.print_help()
+
+
+if __name__ == "__main__":
+    main()

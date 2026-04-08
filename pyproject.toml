@@ -44,3 +44,20 @@ Issues = "https://github.com/stamate/ai-scientist-skills/issues"
 
 [tool.setuptools.packages.find]
 include = ["tools*"]
+
+[tool.setuptools.package-data]
+tools = [
+    "templates/**/*",
+    "templates/*",
+]
+
+[project.scripts]
+ai-scientist-verify = "tools.verify_setup:main"
+ai-scientist-device = "tools.device_utils:main"
+ai-scientist-config = "tools.config:main"
+ai-scientist-search = "tools.search:main"
+ai-scientist-state = "tools.state_manager:main"
+ai-scientist-metrics = "tools.metric_parser:main"
+ai-scientist-latex = "tools.latex_compiler:main"
+ai-scientist-pdf = "tools.pdf_reader:main"
+ai-scientist-budget = "tools.budget_estimator:main"

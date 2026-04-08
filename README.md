@@ -75,7 +75,12 @@ sudo apt install texlive-full
 
 ### Install
 
-**Project install** (recommended):
+**Step 1 — Install Python tools**:
+```bash
+uv pip install git+https://github.com/stamate/ai-scientist-skills.git
+```
+
+**Step 2 — Install skills** (recommended):
 ```bash
 cd your-research-project
 npx skills add stamate/ai-scientist-skills
@@ -84,7 +89,7 @@ npx skills add K-Dense-AI/claude-scientific-skills   # optional: 134 scientific 
 ```
 Uses the [Agent Skills](https://agentskills.io/) standard. Works with Claude Code, Codex, Cursor, Gemini CLI, and more.
 
-**Global install**:
+**Global skills install**:
 ```bash
 npx skills add stamate/ai-scientist-skills -g
 npx skills add stamate/codex-plugin-cc -g
@@ -94,7 +99,7 @@ npx skills add K-Dense-AI/claude-scientific-skills -g
 ### Verify
 
 ```bash
-uv run python3 tools/verify_setup.py
+ai-scientist-verify
 ```
 
 Checks Python version, all dependencies, PyTorch device, LaTeX tools, and Claude Code CLI in one go.

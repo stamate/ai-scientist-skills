@@ -17,26 +17,23 @@ Same as experiment-step: `--exp-dir`, `--stage`, `--parent-id`, `--action`, `--t
 ### 0. Locate Plugin Root
 
 ```bash
-export AISCIENTIST_ROOT=$(claude plugin list --json 2>/dev/null | python3 -c "import json,sys;print(next((p['installPath'] for p in json.load(sys.stdin) if 'ai-scientist' in p['id']),''))" 2>/dev/null)
-[ -z "$AISCIENTIST_ROOT" ] && echo "ERROR: ai-scientist plugin not found"
-echo "Plugin root: $AISCIENTIST_ROOT"
 ```
 
 ### 1. Load Context
 
 ```bash
-uv run python3 "$AISCIENTIST_ROOT/tools/state_manager.py" journal-summary <exp_dir> <stage>
+ai-scientist-state journal-summary <exp_dir> <stage>
 ```
 
 If parent node ID provided:
 ```bash
-uv run python3 "$AISCIENTIST_ROOT/tools/state_manager.py" node-info <exp_dir> <stage> <parent_id> --show-code
+ai-scientist-state node-info <exp_dir> <stage> <parent_id> --show-code
 ```
 
 ### 2. Detect Device
 
 ```bash
-uv run python3 "$AISCIENTIST_ROOT/tools/device_utils.py" --preamble
+ai-scientist-device --preamble
 ```
 
 ### 3. Generate Code
@@ -55,7 +52,7 @@ mkdir -p <exp_dir>/workspace/figures
 ### 5. Check for Duplicates
 
 ```bash
-uv run python3 "$AISCIENTIST_ROOT/tools/state_manager.py" dedup-check <exp_dir> <stage> --code <exp_dir>/workspace/runfile.py
+ai-scientist-state dedup-check <exp_dir> <stage> --code <exp_dir>/workspace/runfile.py
 ```
 
 If duplicate found, report it and skip — no need to execute.

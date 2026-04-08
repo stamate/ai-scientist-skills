@@ -32,33 +32,30 @@ Parse these from the user's message.
 ### 0. Locate Plugin Root
 
 ```bash
-export AISCIENTIST_ROOT=$(claude plugin list --json 2>/dev/null | python3 -c "import json,sys;print(next((p['installPath'] for p in json.load(sys.stdin) if 'ai-scientist' in p['id']),''))" 2>/dev/null)
-[ -z "$AISCIENTIST_ROOT" ] && echo "ERROR: ai-scientist plugin not found"
-echo "Plugin root: $AISCIENTIST_ROOT"
 ```
 
 ### 1. Initialize Experiment
 
 **New experiment** (no `--exp-dir`):
 ```bash
-uv run python3 "$AISCIENTIST_ROOT/tools/state_manager.py" init --idea <idea_path> --config <config_path>
+ai-scientist-state init --idea <idea_path> --config <config_path>
 ```
 This prints the experiment directory path. Use it as `<exp_dir>` in all subsequent commands.
 
 **Resume** (with `--exp-dir`):
 ```bash
-uv run python3 "$AISCIENTIST_ROOT/tools/state_manager.py" status <exp_dir>
+ai-scientist-state status <exp_dir>
 ```
 Read the current stage and completed stages to know where to resume.
 
 ### 2. Detect Device
 ```bash
-uv run python3 "$AISCIENTIST_ROOT/tools/device_utils.py" --info
+ai-scientist-device --info
 ```
 
 ### 3. Load Config
 ```bash
-uv run python3 "$AISCIENTIST_ROOT/tools/config.py" --config <config_path>
+ai-scientist-config --config <config_path>
 ```
 
 Key values:
@@ -108,7 +105,7 @@ Repeat until stage completion (max_iters reached or completion criteria met):
 
 1. **Select candidate nodes** for expansion:
    ```bash
-   uv run python3 "$AISCIENTIST_ROOT/tools/state_manager.py" select-nodes <exp_dir> <stage>
+   ai-scientist-state select-nodes <exp_dir> <stage>
    ```
    This returns JSON with candidate node IDs and recommended actions (debug/improve).
 
@@ -120,7 +117,7 @@ Repeat until stage completion (max_iters reached or completion criteria met):
 
 3. **Check stage completion** after each batch:
    ```bash
-   uv run python3 "$AISCIENTIST_ROOT/tools/state_manager.py" journal-summary <exp_dir> <stage>
+   ai-scientist-state journal-summary <exp_dir> <stage>
    ```
 
    **Stage 1 completion**: `good_nodes > 0`
@@ -134,7 +131,7 @@ When a stage completes, run the best node's code with multiple random seeds to v
 
 1. Get the best node's code:
    ```bash
-   uv run python3 "$AISCIENTIST_ROOT/tools/state_manager.py" best-node <exp_dir> <stage> --show-code
+   ai-scientist-state best-node <exp_dir> <stage> --show-code
    ```
 
 2. Run it with different seeds (42, 123, 456). First check if the code uses the SEED env var (new style) or hardcoded seeds (old style):
@@ -161,12 +158,12 @@ When a stage completes:
 
 1. Record the transition:
    ```bash
-   uv run python3 "$AISCIENTIST_ROOT/tools/state_manager.py" transition <exp_dir> <current_stage> <next_stage>
+   ai-scientist-state transition <exp_dir> <current_stage> <next_stage>
    ```
 
 2. Generate a stage briefing for the next stage:
    ```bash
-   uv run python3 "$AISCIENTIST_ROOT/tools/state_manager.py" stage-briefing <exp_dir> <current_stage>
+   ai-scientist-state stage-briefing <exp_dir> <current_stage>
    ```
    This returns a JSON summary with: best metrics, datasets tested, key findings, and failed approaches.
 
@@ -198,7 +195,7 @@ When a stage completes:
 
 2. **If available**, get the promoted best solution from the just-completed stage:
    ```bash
-   uv run python3 "$AISCIENTIST_ROOT/tools/state_manager.py" save-best <exp_dir> <completed_stage>
+   ai-scientist-state save-best <exp_dir> <completed_stage>
    ```
    Where `<completed_stage>` is the stage that just finished (e.g., `stage1_initial`), NOT the next stage.
    This writes the best node's code to `<exp_dir>/state/<current_stage>/best_solution_<id>.py`. Use that file path for the review:
@@ -244,14 +241,14 @@ If Stage 1 has used 80%+ of `stage1_max_iters` with zero good nodes, delegate di
 
 1. **Collect recent error information**:
    ```bash
-   uv run python3 "$AISCIENTIST_ROOT/tools/state_manager.py" journal-summary <exp_dir> stage1_initial
+   ai-scientist-state journal-summary <exp_dir> stage1_initial
    ```
    Note the total nodes and buggy count.
 
    Then get error details from recent buggy nodes. Read the stage journal to find node IDs:
    ```bash
    uv run python3 -c "
-   import json, sys; sys.path.insert(0, '$AISCIENTIST_ROOT')
+   import json
    from tools.state_manager import load_journal, get_buggy_nodes
    j = load_journal('<exp_dir>', 'stage1_initial')
    buggy = get_buggy_nodes(j)[-3:]  # last 3 buggy nodes
@@ -287,22 +284,22 @@ After all 4 stages complete:
 
 1. Print final summary:
    ```bash
-   uv run python3 "$AISCIENTIST_ROOT/tools/state_manager.py" status <exp_dir>
-   uv run python3 "$AISCIENTIST_ROOT/tools/state_manager.py" journal-summary <exp_dir> stage1_initial
-   uv run python3 "$AISCIENTIST_ROOT/tools/state_manager.py" journal-summary <exp_dir> stage2_baseline
-   uv run python3 "$AISCIENTIST_ROOT/tools/state_manager.py" journal-summary <exp_dir> stage3_creative
-   uv run python3 "$AISCIENTIST_ROOT/tools/state_manager.py" journal-summary <exp_dir> stage4_ablation
+   ai-scientist-state status <exp_dir>
+   ai-scientist-state journal-summary <exp_dir> stage1_initial
+   ai-scientist-state journal-summary <exp_dir> stage2_baseline
+   ai-scientist-state journal-summary <exp_dir> stage3_creative
+   ai-scientist-state journal-summary <exp_dir> stage4_ablation
    ```
 
 2. Copy best results:
    ```bash
-   uv run python3 "$AISCIENTIST_ROOT/tools/state_manager.py" save-best <exp_dir> stage4_ablation
+   ai-scientist-state save-best <exp_dir> stage4_ablation
    cp -r <exp_dir>/workspace/figures/* <exp_dir>/figures/ 2>/dev/null || true
    ```
 
 3. Mark experiment complete:
    ```bash
-   uv run python3 "$AISCIENTIST_ROOT/tools/state_manager.py" update-state <exp_dir> --phase complete --status experiment_done
+   ai-scientist-state update-state <exp_dir> --phase complete --status experiment_done
    ```
 
 ## Error Handling

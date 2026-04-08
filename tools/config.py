@@ -141,7 +141,10 @@ class Config:
 
 # ── Default config path ──────────────────────────────────────────────────────
 
-TEMPLATES_DIR = Path(__file__).parent.parent / "templates"
+try:
+    from tools import TEMPLATES_DIR
+except ImportError:
+    TEMPLATES_DIR = Path(__file__).parent.parent / "templates"
 DEFAULT_CONFIG_PATH = TEMPLATES_DIR / "bfts_config.yaml"
 
 
@@ -251,6 +254,10 @@ def parse_config_args(argv=None) -> Config:
 
 # ── Main (self-test) ─────────────────────────────────────────────────────────
 
-if __name__ == "__main__":
+def main():
     cfg = parse_config_args()
     print(yaml.dump(asdict(cfg), default_flow_style=False, sort_keys=False))
+
+
+if __name__ == "__main__":
+    main()

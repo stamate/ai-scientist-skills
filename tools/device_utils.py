@@ -108,7 +108,7 @@ print(f"Random seed: {{SEED}}")
 
 # ── CLI ──────────────────────────────────────────────────────────────────────
 
-if __name__ == "__main__":
+def main():
     import argparse
 
     parser = argparse.ArgumentParser(description="Detect PyTorch device")
@@ -127,3 +127,7 @@ if __name__ == "__main__":
         print(get_device_preamble())
     else:
         print(detect_device())
+
+
+if __name__ == "__main__":
+    main()

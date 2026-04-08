@@ -17,16 +17,13 @@ The user's message contains the search query. Extract it and search for relevant
 ### 0. Locate Plugin Root
 
 ```bash
-export AISCIENTIST_ROOT=$(claude plugin list --json 2>/dev/null | python3 -c "import json,sys;print(next((p['installPath'] for p in json.load(sys.stdin) if 'ai-scientist' in p['id']),''))" 2>/dev/null)
-[ -z "$AISCIENTIST_ROOT" ] && echo "ERROR: ai-scientist plugin not found"
-echo "Plugin root: $AISCIENTIST_ROOT"
 ```
 
 1. **Parse the query** from the user's message or arguments.
 
 2. **Try Semantic Scholar first** by running:
    ```
-   uv run python3 "$AISCIENTIST_ROOT/tools/search.py" "<query>" --limit 10 --json
+   ai-scientist-search "<query>" --limit 10 --json
    ```
    This uses the S2 API (with or without `S2_API_KEY`).
 

@@ -42,42 +42,32 @@ Parse from the user's message. If none of `--workshop`, `--idea`, or `--exp-dir`
 
 ### Phase 0: Setup
 
-0. **Locate plugin root** (required before any tool invocations):
+0. **Verify environment**:
    ```bash
-   export AISCIENTIST_ROOT=$(claude plugin list --json 2>/dev/null | python3 -c "import json,sys;print(next((p['installPath'] for p in json.load(sys.stdin) if 'ai-scientist' in p['id']),''))" 2>/dev/null)
-   [ -z "$AISCIENTIST_ROOT" ] && echo "ERROR: ai-scientist plugin not found"
-   echo "AI Scientist root: $AISCIENTIST_ROOT"
-   ```
-   **All subsequent `tools/` references in this skill and sub-skills must use `"$AISCIENTIST_ROOT/tools/"`** instead of bare `tools/`. Similarly, `templates/` becomes `"$AISCIENTIST_ROOT/templates/"`.
-
-   Store this path — pass it to sub-skills as `--plugin-root "$AISCIENTIST_ROOT"` or set it before each Bash command.
-
-1. **Verify environment**:
-   ```bash
-   uv run python3 "$AISCIENTIST_ROOT/tools/verify_setup.py"
+   ai-scientist-verify
    ```
    If this fails (missing dependencies, wrong Python version, etc.), **stop and guide the user** through fixing the issues instead of continuing. Common problems:
    - `python: command not found` → tell the user to use `python3` or activate a virtualenv
    - `TypeError: unsupported operand type(s) for |` → Python version is below 3.10, tell user to install Python 3.11+
    - Missing packages → tell user to run `pip install -r requirements.txt`
 
-2. **Detect device**:
+1. **Detect device**:
    ```bash
-   uv run python3 "$AISCIENTIST_ROOT/tools/device_utils.py" --info
+   ai-scientist-device --info
    ```
 
-3. **Load configuration**:
+2. **Load configuration**:
    ```bash
-   uv run python3 "$AISCIENTIST_ROOT/tools/config.py" --config <config_path>
+   ai-scientist-config --config <config_path>
    ```
 
-4. **Check LaTeX** (optional, only needed for writeup):
+3. **Check LaTeX** (optional, only needed for writeup):
    ```bash
-   uv run python3 "$AISCIENTIST_ROOT/tools/latex_compiler.py" check
+   ai-scientist-latex check
    ```
    Warn if pdflatex or bibtex is missing — the experiment can still run, paper generation will be skipped.
 
-5. **Detect Codex** (optional enhancement):
+4. **Detect Codex** (optional enhancement):
 
    Check four conditions — CLI binary, Claude Code plugin, authentication, and config toggle:
    ```bash
@@ -86,7 +76,7 @@ Parse from the user's message. If none of `--workshop`, `--idea`, or `--exp-dir`
    claude plugin list --json 2>/dev/null | python3 -c "import json,sys;any('codex' in p['id'] for p in json.load(sys.stdin)) and print('PLUGIN_OK') or print('PLUGIN_MISSING')" 2>/dev/null
    codex login status 2>/dev/null && echo "AUTH_OK" || echo "AUTH_MISSING"
    ```
-   Also read the `codex.enabled` value from the loaded config (step 3 above).
+   Also read the `codex.enabled` value from the loaded config (step 2 above).
 
    Determine `CODEX_ENABLED`:
    - If `--no-codex` is set: `CODEX_ENABLED=false` regardless of anything else
@@ -102,7 +92,7 @@ Parse from the user's message. If none of `--workshop`, `--idea`, or `--exp-dir`
    - If CLI + plugin found but auth failed: "Codex installed but not authenticated — run: codex login"
    - If `CODEX_ENABLED=false`: "Codex not enabled — using standard pipeline"
 
-6. **Detect claude-scientific-skills** (optional enhancement):
+5. **Detect claude-scientific-skills** (optional enhancement):
 
    Check if the claude-scientific-skills plugin is installed:
    ```bash
@@ -110,7 +100,7 @@ Parse from the user's message. If none of `--workshop`, `--idea`, or `--exp-dir`
    claude plugin list --json 2>/dev/null | python3 -c "import json,sys;any('sci-skills' in p['id'] for p in json.load(sys.stdin)) and print('SCIENTIFIC_SKILLS_OK') or print('SCIENTIFIC_SKILLS_MISSING')" 2>/dev/null
    ```
    This checks for the `/research-lookup` skill which is present in claude-scientific-skills and claude-scientific-writer plugins.
-   Also read the `scientific_skills.enabled` value from the loaded config (step 3).
+   Also read the `scientific_skills.enabled` value from the loaded config (step 2).
 
    Determine `SCIENTIFIC_SKILLS_ENABLED`:
    - If `--no-scientific-skills` is set: `SCIENTIFIC_SKILLS_ENABLED=false`
@@ -131,15 +121,15 @@ Parse from the user's message. If none of `--workshop`, `--idea`, or `--exp-dir`
 3. If `--idea` provided, validate the idea JSON has required fields per `templates/idea_schema.json`
 4. Test S2 API connectivity:
    ```bash
-   uv run python3 "$AISCIENTIST_ROOT/tools/search.py" check
+   ai-scientist-search check
    ```
 5. Test LaTeX compilation with a minimal document:
    ```bash
-   uv run python3 "$AISCIENTIST_ROOT/tools/latex_compiler.py" check
+   ai-scientist-latex check
    ```
 6. Report estimated token budget (if budget_estimator.py exists):
    ```bash
-   uv run python3 "$AISCIENTIST_ROOT/tools/budget_estimator.py" --config <config_path> 2>/dev/null || echo "Budget estimator not available"
+   ai-scientist-budget --config <config_path> 2>/dev/null || echo "Budget estimator not available"
    ```
 7. Print summary:
    ```
@@ -363,5 +353,5 @@ The pipeline supports resuming at any phase:
 - For a quick test run, use `--config` with reduced iterations:
   ```bash
   # Create a test config with fewer iterations
-  uv run python3 "$AISCIENTIST_ROOT/tools/config.py" --set agent.stages.stage1_max_iters=5 agent.stages.stage2_max_iters=3 agent.stages.stage3_max_iters=3 agent.stages.stage4_max_iters=3
+  ai-scientist-config --set agent.stages.stage1_max_iters=5 agent.stages.stage2_max_iters=3 agent.stages.stage3_max_iters=3 agent.stages.stage4_max_iters=3
   ```

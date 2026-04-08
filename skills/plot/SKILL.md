@@ -20,9 +20,6 @@ Parse from the user's message.
 ### 0. Locate Plugin Root
 
 ```bash
-export AISCIENTIST_ROOT=$(claude plugin list --json 2>/dev/null | python3 -c "import json,sys;print(next((p['installPath'] for p in json.load(sys.stdin) if 'ai-scientist' in p['id']),''))" 2>/dev/null)
-[ -z "$AISCIENTIST_ROOT" ] && echo "ERROR: ai-scientist plugin not found"
-echo "Plugin root: $AISCIENTIST_ROOT"
 ```
 
 ### 1. Load Experiment Context
@@ -30,8 +27,7 @@ echo "Plugin root: $AISCIENTIST_ROOT"
 Read the experiment state and gather all stage summaries:
 ```bash
 uv run python3 -c "
-import json, sys, os
-sys.path.insert(0, os.environ.get('AISCIENTIST_ROOT', '.'))
+import json
 from tools.state_manager import load_experiment_state, load_journal, get_best_node, get_journal_summary
 state = load_experiment_state('<exp_dir>')
 for stage in ['stage1_initial', 'stage2_baseline', 'stage3_creative', 'stage4_ablation']:
@@ -134,7 +130,7 @@ If `SCIENTIFIC_PLUGIN_MISSING`, skip this entire section silently.
 Then check config (if experiment config is available):
 ```bash
 uv run python3 -c "
-import yaml, os, sys; sys.path.insert(0, os.environ.get('AISCIENTIST_ROOT', '.'))
+import yaml
 try:
     cfg = yaml.safe_load(open('<exp_dir>/config.yaml'))
     enabled = str(cfg.get('scientific_skills', {}).get('enabled', 'auto')).lower()
