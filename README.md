@@ -75,32 +75,20 @@ sudo apt install texlive-full
 
 ### Install
 
-**Option A — Install into your project** (recommended):
+**Project install** (recommended):
 ```bash
 cd your-research-project
 npx skills add stamate/ai-scientist-skills
-npx skills add stamate/codex-plugin-cc
-npx skills add K-Dense-AI/claude-scientific-skills
+npx skills add stamate/codex-plugin-cc              # optional: Codex integration
+npx skills add K-Dense-AI/claude-scientific-skills   # optional: 134 scientific skills
 ```
 Uses the [Agent Skills](https://agentskills.io/) standard. Works with Claude Code, Codex, Cursor, Gemini CLI, and more.
 
-**Option B — One command with Python deps**:
-```bash
-cd your-research-project
-uv run https://raw.githubusercontent.com/stamate/ai-scientist-skills/main/scripts/setup.py --project
-```
-Same as above + creates `.venv/` with Python deps (torch, numpy, etc.).
-
-**Option C — Global install**:
+**Global install**:
 ```bash
 npx skills add stamate/ai-scientist-skills -g
 npx skills add stamate/codex-plugin-cc -g
 npx skills add K-Dense-AI/claude-scientific-skills -g
-```
-
-**Option D — Clone for development**:
-```bash
-uv run https://raw.githubusercontent.com/stamate/ai-scientist-skills/main/scripts/setup.py --local
 ```
 
 ### Verify
@@ -277,7 +265,6 @@ ai-scientist-skills/
 │   ├── pdf_reader.py          #   PDF text extraction
 │   └── budget_estimator.py    #   Token usage / cost estimation
 ├── scripts/
-│   ├── setup.py               #   One-command install (uv run from URL)
 │   └── pre-commit-check.py    #   Validate skills, config, step numbering
 ├── templates/
 │   ├── latex/icml/             #   8-page ICML 2025 template
@@ -347,11 +334,10 @@ Or pass `--revision-passes 3` to the orchestrator for one-off override.
 
 ### Scientific Skills Integration (Optional)
 
-Install the [claude-scientific-skills](https://github.com/stamate/claude-scientific-skills) plugin for enhanced research capabilities:
+Install [claude-scientific-skills](https://github.com/K-Dense-AI/claude-scientific-skills) for enhanced research capabilities:
 
 ```bash
-claude plugin marketplace add stamate/claude-scientific-skills
-claude plugin install scientific-skills@stm-sci-skills
+npx skills add K-Dense-AI/claude-scientific-skills
 ```
 
 When scientific skills are available, the pipeline automatically:
@@ -369,11 +355,10 @@ scientific_skills:
 
 ### Codex Integration (Optional)
 
-Install the [codex-plugin-cc](https://github.com/stamate/codex-plugin-cc) plugin for enhanced reviews:
+Install [codex-plugin-cc](https://github.com/stamate/codex-plugin-cc) for enhanced reviews:
 
 ```bash
-claude plugin marketplace add stamate/codex-plugin-cc
-claude plugin install codex@stm-codex
+npx skills add stamate/codex-plugin-cc
 npm install -g @openai/codex
 codex login
 ```
