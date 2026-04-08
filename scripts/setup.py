@@ -201,7 +201,7 @@ def find_plugin_requirements() -> Path | None:
             continue
         try:
             result = run(["find", str(search_root), "-maxdepth", "8",
-                          "-name", "requirements.txt", "-path", "*ai-scientist*"])
+                          "-name", "requirements.txt", "-path", "*ai-sci*"])
             if result.stdout.strip():
                 p = Path(result.stdout.strip().splitlines()[0])
                 if p.exists():

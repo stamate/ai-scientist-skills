@@ -44,7 +44,7 @@ Parse from the user's message. If none of `--workshop`, `--idea`, or `--exp-dir`
 
 0. **Locate plugin root** (required before any tool invocations):
    ```bash
-   export AISCIENTIST_ROOT=$(claude plugin list --json 2>/dev/null | python3 -c "import json,sys;print(next((p['installPath'] for p in json.load(sys.stdin) if 'ai-sci' in p['id']),''))" 2>/dev/null)
+   export AISCIENTIST_ROOT=$(claude plugin list --json 2>/dev/null | python3 -c "import json,sys;print(next((p['installPath'] for p in json.load(sys.stdin) if p['id'].startswith('ai-sci@')),''))" 2>/dev/null)
    [ -z "$AISCIENTIST_ROOT" ] && echo "ERROR: ai-scientist plugin not found"
    echo "AI Scientist root: $AISCIENTIST_ROOT"
    ```
