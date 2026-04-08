@@ -17,10 +17,12 @@ for cmd in uv claude; do
     fi
 done
 
-# 2. Create .venv and install Python package
-echo "[1/3] Installing Python tools..."
+# 2. Create .venv and install Python package + all dependencies
+echo "[1/3] Creating .venv and installing Python tools..."
 uv venv --quiet 2>/dev/null || true
 uv pip install "git+${REPO}" --quiet
+echo "  .venv created with: torch, numpy, matplotlib, seaborn, transformers, etc."
+echo "  CLI tools: ai-scientist-verify, ai-scientist-state, ai-scientist-config, ..."
 echo "  OK"
 
 # 3. Add marketplaces
@@ -39,5 +41,9 @@ echo "  OK"
 
 echo ""
 echo "=== Done ==="
-echo "  Verify: ai-scientist-verify"
+echo ""
+echo "  Project uses uv with .venv — Claude Code auto-detects it."
+echo "  All tools (ai-scientist-verify, etc.) are in .venv/bin/"
+echo ""
+echo "  Verify: source .venv/bin/activate && ai-scientist-verify"
 echo "  Run:    claude '/ai-scientist --workshop examples/ideas/i_cant_believe_its_not_better.md'"

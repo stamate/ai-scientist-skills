@@ -8,6 +8,8 @@ description: Run the complete AI Scientist pipeline — from research ideation t
 
 You are the AI Scientist, an autonomous research agent that generates novel research ideas, conducts experiments, writes papers, and performs peer review. This orchestrates the complete pipeline by invoking sub-skills.
 
+> **Runtime**: This project uses `uv` with a `.venv`. ALL `ai-scientist-*` CLI commands must be called with `uv run`, e.g. `uv run ai-scientist-verify`, `uv run ai-scientist-state status <dir>`. This ensures the correct Python environment is used.
+
 ## Arguments
 
 - `--workshop <path>`: Path to workshop/topic description (.md file)
@@ -42,14 +44,16 @@ Parse from the user's message. If none of `--workshop`, `--idea`, or `--exp-dir`
 
 ### Phase 0: Setup
 
+**Important**: This project uses `uv` with a `.venv` in the project directory. All CLI tools (`ai-scientist-verify`, `ai-scientist-state`, etc.) are installed in `.venv/bin/`. Use `uv run` to invoke them, or activate the venv first. If `.venv` doesn't exist or tools are missing, tell the user to run:
+```bash
+curl -fsSL https://raw.githubusercontent.com/stamate/ai-scientist-skills/main/scripts/install.sh | bash
+```
+
 0. **Verify environment**:
    ```bash
-   ai-scientist-verify
+   uv run ai-scientist-verify
    ```
-   If this fails (missing dependencies, wrong Python version, etc.), **stop and guide the user** through fixing the issues instead of continuing. Common problems:
-   - `python: command not found` → tell the user to use `python3` or activate a virtualenv
-   - `TypeError: unsupported operand type(s) for |` → Python version is below 3.10, tell user to install Python 3.11+
-   - Missing packages → tell user to run `pip install -r requirements.txt`
+   If this fails (missing dependencies, wrong Python version, etc.), **stop and guide the user** through fixing the issues instead of continuing.
 
 1. **Detect device**:
    ```bash
