@@ -261,6 +261,9 @@ def detect_project_root() -> Path | None:
 def main():
     import argparse
 
+    # Save the user's original directory before uv or anything changes it
+    USER_CWD = Path(os.environ.get("PWD", os.getcwd())).resolve()
+
     url = f"https://raw.githubusercontent.com/{REPO}/main/scripts/setup.py"
     parser = argparse.ArgumentParser(
         description="AI Scientist Skills — one-command setup",
@@ -315,11 +318,11 @@ Examples:
         if plugin_req:
             uv = shutil.which("uv")
             if uv:
-                venv_path = Path.cwd() / ".venv"
+                venv_path = USER_CWD / ".venv"
                 if not venv_path.exists():
-                    print(f"  Creating .venv/ in {Path.cwd()}")
+                    print(f"  Creating .venv/ in {user_dir}")
                     run_live([uv, "venv", str(venv_path)])
-                # Explicitly target the project's .venv, not uv's temp env
+                # Explicitly target the project's .venv with absolute path
                 pip_python = str(venv_path / "bin" / "python")
                 rc = run_live([uv, "pip", "install",
                                "--python", pip_python,
@@ -366,7 +369,7 @@ Examples:
         print(f"\n{BOLD}=== Done (with errors) ==={RESET}")
 
     if args.project:
-        print(f"  Scope: project ({Path.cwd()})")
+        print(f"  Scope: project ({USER_CWD})")
         print(f"\n  Quick start:")
         print(f"    claude '/ai-scientist --workshop examples/ideas/i_cant_believe_its_not_better.md'")
     elif args.local:
