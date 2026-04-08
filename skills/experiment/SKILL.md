@@ -320,6 +320,45 @@ After all 4 stages complete:
 - If a stage produces no improvement after multiple iterations: proceed to the next stage with the best available node.
 - If all agents in a parallel batch fail: retry with different approaches before giving up.
 
+### All Nodes in a Stage Are Buggy
+
+If after 80%+ of max_iters, every node has errors:
+
+1. **Report to user**: "Stage X: All N attempts produced errors. Common patterns:" — list the most common error types (e.g., "OOM: 5 nodes", "Shape mismatch: 3 nodes")
+2. **Invoke Codex rescue** if available (see step f above)
+3. **If Codex rescue succeeds**: apply its suggestions and retry with fresh code
+4. **If Codex rescue also fails or is unavailable**: mark stage as FAILED, skip remaining stages, report to user with diagnostic summary
+
+### Execution Timeout
+
+If experiment code exceeds the 3600s timeout:
+- The process is killed automatically
+- Save whatever output was captured to the log file
+- Mark the node as buggy with note "timeout after 3600s"
+- Continue to next iteration — do NOT retry the same code
+- If timeouts are frequent (>50% of nodes), suggest reducing model size or dataset in the next iteration's task description
+
+### Out of Memory
+
+If code fails with OOM (CUDA or system):
+- Mark node as buggy with note "out of memory"
+- In the next iteration, explicitly add to the task description: "Previous attempt failed with OOM. Use smaller batch size, gradient accumulation, or mixed precision."
+- If 3+ consecutive OOM failures, suggest switching to CPU or reducing model size
+
+### Parallel Worker Imbalance
+
+If one worker finishes all tasks but another is still running:
+- Don't wait — proceed with available results
+- The slow worker's results will be recorded when they complete
+- Next iteration can use all available nodes for selection
+
+### Experiment Resumption
+
+If the pipeline crashes mid-stage:
+- Use `uv run ai-scientist-state status <exp_dir>` to check current state
+- Use `uv run ai-scientist-state journal-summary <exp_dir> <stage>` to see completed iterations
+- Resume by re-running the experiment skill with `--exp-dir <exp_dir>` — it will detect the current stage and continue from where it left off
+
 ## Progress Reporting
 
 After each iteration batch, report:

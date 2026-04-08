@@ -170,6 +170,26 @@ def _nested_dataclass_from_dict(cls, data: dict):
     return cls(**kwargs)
 
 
+def _validate_keys(data: dict, cls, prefix: str = "") -> list[str]:
+    """Check for unknown keys in config dict. Returns list of warnings."""
+    warnings = []
+    if not isinstance(data, dict):
+        return warnings
+    known = {f.name for f in cls.__dataclass_fields__.values()}
+    field_types = {f.name: f.type for f in cls.__dataclass_fields__.values()}
+    for key in data:
+        full_key = f"{prefix}.{key}" if prefix else key
+        if key not in known:
+            warnings.append(f"Unknown config key '{full_key}' — will be ignored. Check for typos.")
+        elif isinstance(data[key], dict) and key in field_types:
+            ft = field_types[key]
+            if isinstance(ft, str):
+                ft = eval(ft)
+            if isinstance(ft, type) and hasattr(ft, "__dataclass_fields__"):
+                warnings.extend(_validate_keys(data[key], ft, full_key))
+    return warnings
+
+
 def load_config(path: Optional[str] = None, overrides: Optional[dict] = None) -> Config:
     """Load configuration from a YAML file and apply optional overrides.
 
@@ -190,6 +210,11 @@ def load_config(path: Optional[str] = None, overrides: Optional[dict] = None) ->
     # Apply overrides
     if overrides:
         _deep_merge(cfg_dict, overrides)
+
+    # Validate keys — warn about typos
+    warnings = _validate_keys(cfg_dict, Config)
+    for w in warnings:
+        print(f"WARNING: {w}", file=sys.stderr)
 
     cfg = _nested_dataclass_from_dict(Config, cfg_dict)
     return cfg

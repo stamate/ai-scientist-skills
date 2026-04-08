@@ -186,3 +186,13 @@ This queries 78+ databases (UniProt, STRING, Reactome, PubChem, ChEMBL, etc.) fo
 - The `Name` field must be lowercase with underscores, no spaces.
 - Experiments should use publicly available datasets (preferably from HuggingFace).
 - Consider both positive and negative expected outcomes.
+
+## Error Handling
+
+- **S2 API fails or returns no results** → Fall back to WebSearch on `arxiv.org` and `scholar.google.com` for literature search. Do not skip novelty checking.
+- **No novel ideas found after reflection rounds** → Broaden the research scope: relax constraints, explore adjacent subfields, or combine ideas from different domains within the workshop description.
+- **Idea JSON fails schema validation** → Re-validate each idea against `idea_schema.json`, identify missing or malformed fields, and regenerate only the invalid ideas.
+- **Workshop description file not found or empty** → Report the missing file path to the user and halt. Do not generate ideas without a research scope.
+- **Existing ideas file is corrupted JSON** → Warn the user, back up the corrupted file, and start fresh rather than silently overwriting.
+
+**Golden rule**: Never silently skip a failure. Either succeed clearly, fail loudly with a specific next step, or degrade gracefully with a fallback.

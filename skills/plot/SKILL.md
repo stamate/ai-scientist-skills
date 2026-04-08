@@ -181,3 +181,14 @@ Apply these principles when generating the aggregator script in Step 4, and veri
 - Prefer vector formats (PDF) for line plots
 - Use raster (PNG 300DPI) for complex plots with many points
 - Ensure all data is real (from experiment runs), never synthetic/fake
+
+## Error Handling
+
+- **No figures directory exists** → Report to the user that no experiment figures were found and skip plot aggregation. List which stages completed successfully so the user knows where the pipeline stopped.
+- **Matplotlib fails to render** → Check the display backend (`matplotlib.get_backend()`). Switch to the non-interactive `Agg` backend with `matplotlib.use('Agg')` before importing pyplot. Retry rendering.
+- **No experiment data available** → Report which stages completed and which have no data. Do not generate empty or placeholder figures.
+- **Aggregator script crashes** → Read the error output, fix the specific issue in the script, and retry (up to 3 rounds as specified in the iteration step).
+- **Generated figures are empty or all-white** → Check that data was loaded correctly and that plot calls have valid data arrays. Regenerate with explicit data validation before plotting.
+- **PDF export fails** → Fall back to PNG-only export at 300 DPI. Warn the user that vector figures are unavailable.
+
+**Golden rule**: Never silently skip a failure. Either succeed clearly, fail loudly with a specific next step, or degrade gracefully with a fallback.

@@ -21,7 +21,7 @@ exp_name: run
 
 # ── Code execution ───────────────────────────────────────────────────────────
 exec:
-  timeout: 3600          # seconds per experiment run
+  timeout: 3600          # Max seconds per experiment run. Increase for large models.
   agent_file_name: runfile.py
 
 # ── Report generation ────────────────────────────────────────────────────────
@@ -34,58 +34,66 @@ experiment:
 # ── Agent (tree search) ─────────────────────────────────────────────────────
 agent:
   type: parallel
-  num_workers: 2         # parallel BFTS agents (configurable, default 2)
+  num_workers: 2
+  # How many parallel agents to launch during BFTS tree search.
+  # Recommendations:
+  #   - Single GPU: 1-2 (avoid GPU contention)
+  #   - Multi-GPU: 2-4 (one per 1-2 GPUs)
+  #   - CPU-only: 2-4 (limited by core count and memory)
+  #   - Claude Max: 2 is safe; higher may hit rate limits
 
   # Per-stage iteration limits
+  # More iterations = better results but higher cost.
+  # Quick test: 5/3/3/3. Full run: 20/12/12/18.
   stages:
-    stage1_max_iters: 20   # Initial implementation
-    stage2_max_iters: 12   # Baseline tuning
-    stage3_max_iters: 12   # Creative research
-    stage4_max_iters: 18   # Ablation studies
+    stage1_max_iters: 20   # Initial implementation — most attempts needed
+    stage2_max_iters: 12   # Baseline tuning — hyperparameter search
+    stage3_max_iters: 12   # Creative research — architecture changes
+    stage4_max_iters: 18   # Ablation studies — systematic evaluation
 
   # Fallback if stage-specific limits not provided
   steps: 5
 
   # Validation settings
-  k_fold_validation: 1
-  data_preview: false
-  expose_prediction: false
+  k_fold_validation: 1     # Number of validation folds (1 = single split)
+  data_preview: false       # Preview data before running experiments
+  expose_prediction: false  # Show model predictions in output
 
   # Tree search strategy
   search:
-    max_debug_depth: 3     # max consecutive debug retries
-    debug_prob: 0.5        # probability of retrying a failed node
-    num_drafts: 3          # initial root nodes per stage
+    max_debug_depth: 3     # Max consecutive debug retries on a buggy node
+    debug_prob: 0.5        # Probability of retrying a failed node vs trying new
+    num_drafts: 3          # Initial root nodes per stage (parallel first attempts)
 
 # ── Paper writeup ────────────────────────────────────────────────────────────
-writeup_type: icbinb       # "icbinb" (4-page) or "icml" (8-page)
-num_cite_rounds: 5
-num_writeup_reflections: 3
+writeup_type: icbinb       # "icbinb" (4-page workshop) or "icml" (8-page conference)
+num_cite_rounds: 5         # Literature search rounds during writing
+num_writeup_reflections: 3 # Self-review rounds before finalizing
 
 # ── Pipeline control ─────────────────────────────────────────────────────────
-skip_writeup: false
-skip_review: false
+skip_writeup: false        # Skip paper generation (experiment only)
+skip_review: false         # Skip peer review
 
 # ── Scientific skills (optional — requires claude-scientific-skills plugin) ──
 scientific_skills:
-  enabled: auto              # auto (use if available) | true | false
-  enhanced_literature: true  # /research-lookup, /database-lookup, /paper-lookup in ideation
-  enhanced_writing: true     # /scientific-writing + /citation-management in writeup
-  enhanced_figures: true     # /scientific-visualization in plot phase
-  enhanced_review: true      # /scientific-critical-thinking in review
+  enabled: auto              # auto (use if plugin installed) | true | false
+  enhanced_literature: true  # /research-lookup, /database-lookup during ideation
+  enhanced_writing: true     # /scientific-writing + /citation-management during writeup
+  enhanced_figures: true     # /scientific-visualization during plot phase
+  enhanced_review: true      # /scientific-critical-thinking during review
 
 # ── Codex integration (optional — requires codex-plugin-cc) ─────────────────
 codex:
-  enabled: auto              # auto (use if available) | true | false
-  stage_gate_review: true    # adversarial code review between BFTS stages
-  panel_paper_review: true   # Codex panel review of final paper
-  code_alignment: true       # code-methods alignment check (paper vs code)
-  rescue_on_stuck: true      # delegate to Codex when experiments are stuck
+  enabled: auto              # auto (use if CLI + plugin installed) | true | false
+  stage_gate_review: true    # Adversarial code review between BFTS stages
+  panel_paper_review: true   # 3-persona panel review of final paper
+  code_alignment: true       # Verify paper claims match experiment code
+  rescue_on_stuck: true      # Delegate to Codex when experiments are stuck
   venue: auto                # auto (from writeup_type) | neurips | icml | iclr | workshop
 
-# ── Revision loop (optional — re-review after poor scores) ─────────────────
+# ── Revision loop (optional — re-review and revise if score is low) ─────────
 revision:
-  enabled: false               # opt-in: write -> review -> revise -> re-review
-  score_threshold: 5           # re-run if Overall score < this (1-10 scale)
-  max_passes: 2                # max revision cycles (prevent infinite loops)
-  prompt_before_revision: true # ask user before each revision pass
+  enabled: false               # Opt-in: write → review → revise → re-review
+  score_threshold: 5           # Re-run if Overall score < this (1-10 scale)
+  max_passes: 2                # Max revision cycles (prevent infinite loops)
+  prompt_before_revision: true # Ask user before each revision pass

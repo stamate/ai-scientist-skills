@@ -62,3 +62,13 @@ If duplicate found, report it and skip — no need to execute.
 ### 6. Report
 
 Print the generated code path and a brief description of the approach. Do NOT execute the code.
+
+## Error Handling
+
+- **Code generation produces syntax errors** → Run `python3 -c "import ast; ast.parse(open('runfile.py').read())"` to detect syntax issues. If invalid, retry with a simpler approach: reduce complexity, remove advanced features, and regenerate.
+- **Device detection fails** → Default to CPU (`device = torch.device("cpu")`). Log a warning but do not block code generation.
+- **Parent node code is missing or unreadable** → Fall back to using the stage briefing and journal summary only. Generate code based on the stage goals without referencing prior code.
+- **Duplicate check detects a match** → Report the duplicate node ID and skip. Do not write duplicate code to the workspace.
+- **Journal or state files are corrupted** → Report the corruption to the user with the specific file path. Do not generate code against an inconsistent experiment state.
+
+**Golden rule**: Never silently skip a failure. Either succeed clearly, fail loudly with a specific next step, or degrade gracefully with a fallback.

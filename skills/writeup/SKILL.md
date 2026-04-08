@@ -263,3 +263,14 @@ Ensure every `\cite{key}` resolves to a real paper with a valid DOI. Remove or r
 - Use consistent terminology throughout
 - Every claim should be supported by experimental evidence or citations
 - Avoid overclaiming — use "suggests" instead of "proves" for empirical results
+
+## Error Handling
+
+- **LaTeX compilation fails** → Read `template.log` for the specific error. Check for missing packages (`\usepackage` errors), fix undefined commands, and retry. If a specific section causes the failure, temporarily comment it out, compile the rest, then fix the problematic section separately.
+- **BibTeX fails to process references** → Compile without bibliography as a fallback (`\bibliographystyle` and `\bibliography` commented out). Warn the user that citations will appear as `[?]` until BibTeX is fixed. Check `references.bib` for malformed entries.
+- **Paper exceeds page limit** → Warn the user with the actual vs. allowed page count. Suggest sections that could be trimmed or moved to an appendix. Do not silently truncate content.
+- **S2 search backend is unreachable** → Switch to WebSearch exclusively for all citation rounds. Do not waste rounds retrying a broken S2 backend.
+- **Figures missing from LaTeX directory** → Re-copy from `<exp_dir>/figures/` to `<exp_dir>/latex/figures/`. If source figures do not exist, compile without them and warn the user which figures are missing.
+- **Fabricated or unverifiable citation detected** → Remove the citation immediately. Never include a `\cite{}` key without a matching, real entry in `references.bib`.
+
+**Golden rule**: Never silently skip a failure. Either succeed clearly, fail loudly with a specific next step, or degrade gracefully with a fallback.

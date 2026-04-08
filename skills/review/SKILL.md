@@ -20,10 +20,13 @@ Parse from the user's message.
 
 ## Procedure
 
-### 0. Locate Plugin Root
+The review has two tiers:
+- **Core Review (Steps 1-8)**: Always runs. Produces the primary review JSON.
+- **Enhanced Review (Steps 9-12)**: Optional. Adds multi-perspective analysis and cross-validation. Depends on plugin availability.
 
-```bash
-```
+---
+
+### Core Review
 
 ### 1. Extract Paper Text
 
@@ -176,7 +179,13 @@ Present a concise summary:
 - Top 3 weaknesses
 - Key recommendation
 
-### 9. Scientific Critical Thinking Assessment (Optional Enhancement)
+**The Core Review is now complete.** Steps 9-12 below are optional enhancements that run if the relevant plugins are available. If none are available, the review from steps 1-8 is the final output.
+
+---
+
+### Enhanced Review (Optional)
+
+### 9. Scientific Critical Thinking Assessment (Optional)
 
 **Skip this step if** `--no-scientific-skills` is set, plugin not installed, or config disables it.
 

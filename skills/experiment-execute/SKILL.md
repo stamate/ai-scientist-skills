@@ -73,3 +73,14 @@ uv run ai-scientist-state add-node <exp_dir> <stage> \
 ### 6. Report
 
 Node ID, bug status, metrics, recommendation for next step.
+
+## Error Handling
+
+- **Timeout during execution (>3600s)** → Save whatever partial output exists to the log file, mark the node as buggy with analysis noting "execution timeout", and recommend reducing model size or dataset scope.
+- **Out of memory (OOM) error** → Catch OOM in the output log, mark the node as buggy, and suggest reducing batch size, using gradient accumulation, or switching to a smaller model variant.
+- **Metrics not found in output** → Mark the node as buggy with analysis noting "no metrics parsed from output". Check whether the script ran to completion or crashed before the metric-printing stage.
+- **Script raises an unhandled exception** → Capture the full traceback in the log, mark the node as buggy, and include the exception type and message in the analysis field.
+- **Runfile does not exist** → Report that `experiment-generate` must be run first. Do not attempt execution without a generated script.
+- **NaN or Inf in parsed metrics** → Mark the node as buggy with analysis noting "NaN/Inf in metrics", and recommend checking learning rate, loss function, or data preprocessing.
+
+**Golden rule**: Never silently skip a failure. Either succeed clearly, fail loudly with a specific next step, or degrade gracefully with a fallback.
