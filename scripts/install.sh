@@ -113,7 +113,8 @@ if [ -z "$current_backend" ] || [ "$current_backend" = "''" ] || [ "$current_bac
     echo "    2) Modal.com — cloud GPUs (A100, H100, T4, etc.)"
     echo ""
     printf "  Choose [1/2] (default: 1): "
-    read -r choice < /dev/tty
+    choice=""
+    read -r choice < /dev/tty 2>/dev/null || choice="1"
     case "$choice" in
         2|modal|Modal)
             # Install modal if not present
@@ -140,13 +141,15 @@ if [ -z "$current_backend" ] || [ "$current_backend" = "''" ] || [ "$current_bac
                     echo "    3) Skip — I'll set it up later"
                     echo ""
                     printf "  Choose [1-3]: "
-                    read -r auth_choice < /dev/tty
+                    auth_choice=""
+                    read -r auth_choice < /dev/tty 2>/dev/null || auth_choice="3"
                     case "$auth_choice" in
                         1)
                             echo ""
                             echo "  Paste the command from Modal (e.g., modal token set --token-id ak-xxx --token-secret as-xxx):"
                             printf "  > "
-                            read -r token_cmd < /dev/tty
+                            token_cmd=""
+                            read -r token_cmd < /dev/tty 2>/dev/null || token_cmd=""
                             # Run the command directly
                             eval "uv run $token_cmd" 2>&1 || true
                             if uv run modal profile current &>/dev/null; then
@@ -172,7 +175,8 @@ if [ -z "$current_backend" ] || [ "$current_backend" = "''" ] || [ "$current_bac
                 echo "  Which GPU?"
                 echo "    1) A100 (default)  2) H100  3) T4  4) L4"
                 printf "  Choose [1-4] (default: 1): "
-                read -r gpu_choice < /dev/tty
+                gpu_choice=""
+                read -r gpu_choice < /dev/tty 2>/dev/null || gpu_choice="1"
                 case "$gpu_choice" in
                     2) gpu="H100" ;;
                     3) gpu="T4" ;;
