@@ -49,59 +49,42 @@ Parse from the user's message. If none of `--workshop`, `--idea`, or `--exp-dir`
 curl -fsSL https://raw.githubusercontent.com/stamate/ai-scientist-skills/main/scripts/install.sh | bash
 ```
 
-0. **Verify environment**:
+0. **Verify environment and load config**:
    ```bash
    uv run ai-scientist-verify
-   ```
-   If this fails (missing dependencies, wrong Python version, etc.), **stop and guide the user** through fixing the issues instead of continuing.
-
-1. **Detect device**:
-   ```bash
    uv run ai-scientist-device --info
-   ```
-
-2. **Choose compute backend — MANDATORY, DO NOT SKIP**:
-
-   Read the current compute backend from the loaded config output (step 3). Look for `compute.backend`.
-
-   **If `compute.backend` is empty or missing — you MUST stop and ask the user before continuing. Do NOT proceed to any later step until the user answers:**
-
-   Ask the user exactly this:
-
-   **Where would you like to run experiments?**
-   1. **Local** — use this machine (detected device from step 1)
-   2. **Modal.com** — run on cloud GPUs (A100, H100, T4, etc.)
-
-   Wait for the user's response. Then:
-
-   If the user chooses **Local** (or says "local", "1", "this machine", etc.):
-   ```bash
-   uv run ai-scientist-config --set compute.backend=local
-   ```
-
-   If the user chooses **Modal.com** (or says "modal", "2", "cloud", etc.):
-   - Check: `which modal 2>/dev/null && echo "MODAL_OK" || echo "MODAL_MISSING"`
-   - Check: `modal profile current 2>/dev/null && echo "AUTH_OK" || echo "AUTH_MISSING"`
-   - If not set up, tell user: `uv pip install modal && modal setup`
-   - Ask which GPU: A100 (default), H100, T4, L4
-   ```bash
-   uv run ai-scientist-config --set compute.backend=modal compute.modal.gpu=<gpu>
-   ```
-
-   **If `compute.backend` is already set** (e.g., "local" or "modal") — skip the prompt, just report what's configured.
-
-3. **Load configuration**:
-   ```bash
    uv run ai-scientist-config --config <config_path>
    ```
+   If verify fails, **stop and guide the user** through fixing the issues.
 
-4. **Check LaTeX** (optional, only needed for writeup):
+1. **STOP — Choose compute backend**:
+
+   Look at the config output from step 0. Find `compute:` → `backend:`.
+
+   **If `backend` is empty (`""`) or missing: you MUST ask the user this question NOW. Do NOT run any more commands until they answer.**
+
+   Ask:
+
+   > **Where would you like to run experiments?**
+   > 1. **Local** — use this machine (MPS/CUDA/CPU detected above)
+   > 2. **Modal.com** — cloud GPUs (A100, H100, T4, etc.)
+
+   **WAIT for the user's response.** Do not proceed.
+
+   After the user answers:
+
+   - **Local**: `uv run ai-scientist-config --set compute.backend=local`
+   - **Modal**: Check `which modal` and `modal profile current`. If missing, tell user to run `uv pip install modal && modal setup`. Then ask GPU preference (A100 default). Save: `uv run ai-scientist-config --set compute.backend=modal compute.modal.gpu=<gpu>`
+
+   **If `backend` is already `"local"` or `"modal"`**: skip the question, just report it.
+
+2. **Check LaTeX** (optional, only needed for writeup):
    ```bash
    uv run ai-scientist-latex check
    ```
    Warn if pdflatex or bibtex is missing — the experiment can still run, paper generation will be skipped.
 
-5. **Detect Codex** (optional enhancement):
+3. **Detect Codex** (optional enhancement):
 
    Check four conditions — CLI binary, Claude Code plugin, authentication, and config toggle:
    ```bash
@@ -126,7 +109,7 @@ curl -fsSL https://raw.githubusercontent.com/stamate/ai-scientist-skills/main/sc
    - If CLI + plugin found but auth failed: "Codex installed but not authenticated — run: codex login"
    - If `CODEX_ENABLED=false`: "Codex not enabled — using standard pipeline"
 
-6. **Detect claude-scientific-skills** (optional enhancement):
+4. **Detect claude-scientific-skills** (optional enhancement):
 
    Check if the claude-scientific-skills plugin is installed:
    ```bash
