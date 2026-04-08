@@ -319,26 +319,19 @@ Examples:
             uv = shutil.which("uv")
             if uv:
                 venv_path = USER_CWD / ".venv"
-                venv_pip = venv_path / "bin" / "pip"
                 if not venv_path.exists():
                     print(f"  Creating .venv/ in {USER_CWD}")
                     subprocess.call([uv, "venv", str(venv_path)], timeout=60)
-                # Use the venv's own pip to avoid uv's environment isolation
-                if venv_pip.exists():
-                    rc = subprocess.call(
-                        [str(venv_pip), "install", "-r", str(plugin_req)],
-                        timeout=600,
-                    )
-                else:
-                    rc = subprocess.call(
-                        [uv, "pip", "install", "--python", str(venv_path / "bin" / "python"),
-                         "-r", str(plugin_req)],
-                        timeout=600,
-                    )
+                # Set VIRTUAL_ENV to force uv pip to target our venv
+                env = {**os.environ, "VIRTUAL_ENV": str(venv_path)}
+                rc = subprocess.call(
+                    [uv, "pip", "install", "-r", str(plugin_req)],
+                    timeout=600, env=env,
+                )
                 if rc == 0:
                     ok(f"Installed into {venv_path}/")
                 else:
-                    warn(f"Failed. Run manually:\n      {venv_pip} install -r {plugin_req}")
+                    warn(f"Failed. Run manually:\n      VIRTUAL_ENV={venv_path} uv pip install -r {plugin_req}")
                     success = False
             else:
                 warn("uv not found")
