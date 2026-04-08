@@ -9,60 +9,17 @@
     <img src="https://img.shields.io/badge/Python-3.11+-green?style=flat-square" alt="Python"/>
   </p>
 
-  <strong>Language</strong>: <a href="README.md">English</a> | <a href="README.zh-CN.md">中文</a>
-
 </div>
 
-> Re-implements the complete [AI-Scientist-v2](https://github.com/SakanaAI/AI-Scientist) research pipeline as [Claude Code](https://claude.ai/claude-code) skills. Claude Code itself acts as the single research agent — no OpenAI, no Anthropic API keys, no multi-backend orchestration. One agent handles ideation, experiments, plotting, paper writing, and peer review.
-
-## Quick Navigation
-
-| Section | What it helps with |
-|---|---|
-| [Why This Project](#why-this-project) | Understand the motivation and design philosophy. |
-| [Core Pipeline](#core-pipeline) | See the end-to-end flow from idea to reviewed paper. |
-| [Quick Start](#quick-start) | Install dependencies and run your first pipeline. |
-| [Getting Started Scenarios](#getting-started-scenarios) | Realistic first-use examples after installation. |
-| [Skills Reference](#skills-reference) | Browse all available skills and what they do. |
-| [Experiment Pipeline](#experiment-pipeline) | Understand the 4-stage BFTS tree search. |
-| [Configuration](#configuration) | Tune parallelism, timeouts, and iteration counts. |
-| [Comparison with AI-Scientist-v2](#comparison-with-ai-scientist-v2) | See what changed and what improved. |
-
-## Why This Project
-
-[AI-Scientist-v2](https://github.com/SakanaAI/AI-Scientist) demonstrated that LLMs can autonomously conduct ML research. But it requires orchestrating multiple LLM APIs (OpenAI, Anthropic, etc.), managing complex Python infrastructure, and runs only on CUDA.
-
-This project takes a different approach:
-
-> **Claude Code is the only agent.** It replaces every LLM call, every VLM call, and every backend router in the original system. The Python layer handles only non-LLM concerns: state persistence, code execution, LaTeX compilation, and literature search.
-
-The result is a simpler, more portable system that runs the same research pipeline with a single interface.
-
-## Core Pipeline
-
-```
-/ai-scientist --workshop examples/ideas/i_cant_believe_its_not_better.md
-```
-
-One command triggers the full lifecycle:
-
-```
- Ideation ───→ Experiment ───→ Plots ───→ Paper ───→ Review
-    │              │              │          │          │
-    ▼              ▼              ▼          ▼          ▼
- ideas.json    4-stage BFTS    figures/   paper.pdf  review.json
-               tree search
-```
-
-Each phase can also run independently as a standalone skill.
+> Re-implements the complete [AI-Scientist-v2](https://github.com/SakanaAI/AI-Scientist) research pipeline as [Claude Code](https://claude.ai/claude-code) skills. One agent handles ideation, experiments, plotting, paper writing with built-in fact-checking, and multi-layer peer review.
 
 ## Quick Start
 
 ### Prerequisites
 
 - [Claude Code](https://claude.ai/claude-code) CLI
+- [uv](https://docs.astral.sh/uv/) (Python package manager)
 - Python 3.11+
-- PyTorch 2.0+
 - LaTeX (`pdflatex` + `bibtex`)
 
 ```bash
@@ -75,346 +32,211 @@ sudo apt install texlive-full
 
 ### Install
 
-**One command** (recommended):
 ```bash
 cd your-research-project
 curl -fsSL https://raw.githubusercontent.com/stamate/ai-scientist-skills/main/scripts/install.sh | bash
 ```
-Creates `.venv` with all Python deps, installs 8 plugins at project scope, generates `CLAUDE.md`.
 
-**Or step by step**:
-
-```bash
-# Python tools
-uv pip install git+https://github.com/stamate/ai-scientist-skills.git
-
-# Skills (Agent Skills standard — works with Claude Code, Codex, Cursor, etc.)
-npx skills add stamate/ai-scientist-skills
-npx skills add stamate/codex-plugin-cc              # optional: Codex integration
-npx skills add K-Dense-AI/claude-scientific-skills   # optional: 134 scientific skills
-```
-
-**Global skills install**:
-```bash
-npx skills add stamate/ai-scientist-skills -g
-npx skills add stamate/codex-plugin-cc -g
-npx skills add K-Dense-AI/claude-scientific-skills -g
-```
-
-### Verify
-
-```bash
-ai-scientist-verify
-```
-
-Checks Python version, all dependencies, PyTorch device, LaTeX tools, and Claude Code CLI in one go.
+This single command:
+- Creates `.venv` with all Python deps (torch, numpy, matplotlib, transformers, etc.)
+- Installs 8 Claude Code plugins at project scope
+- Updates marketplace caches to latest versions
+- Generates `CLAUDE.md` with environment instructions
+- Verifies the installation
 
 ### Run
 
 ```bash
-# Full pipeline
-claude "/ai-scientist --workshop examples/ideas/i_cant_believe_its_not_better.md"
+claude '/ai-scientist'                    # interactive — guides you through topic creation
+claude '/ai-scientist --workshop topic.md' # from a workshop description
 ```
 
-## Getting Started Scenarios
+## Core Pipeline
 
-After installation, describe your task in natural language. Below are realistic starting points.
+```
+ Ideation ───→ Experiment ───→ Plots ───→ Paper ───→ Review
+    │              │              │          │          │
+    ▼              ▼              ▼          ▼          ▼
+ ideas.json    4-stage BFTS    figures/   paper.pdf  review.json
+               tree search                  ↑
+                                      fact-checked
+                                      per section
+```
 
-### 1. Create Your Research Topic (Start Here)
+Each phase can also run independently as a standalone skill.
 
-**You say:**
-> /ai-scientist:workshop
+## Installed Plugins
 
-**What happens:**
-- Claude asks you a few questions about your research interest,
-- helps you refine the scope and articulate open problems,
-- generates a ready-to-use workshop description `.md` file.
+The install script sets up 8 plugins:
 
-A template is also available at `examples/workshop_template.md` if you prefer to write one manually.
+### Core
 
-### 2. Run the Full Pipeline
+| Plugin | Purpose |
+|--------|---------|
+| **ai-scientist** | Full research pipeline (ideation, experiment, writeup, review) |
+| **codex** | Codex delegation, panel reviews (3 personas), code-methods alignment |
+| **scientific-skills** | 134 scientific skills (78+ databases, tools, analysis) |
 
-**You say:**
-> /ai-scientist --workshop examples/ideas/i_cant_believe_its_not_better.md
+### Enhancements
 
-**What happens:**
-- Claude generates 3 research ideas with literature search,
-- selects the first idea and runs a 4-stage experiment (initial impl → tuning → creative → ablation),
-- generates publication-quality figures,
-- writes a 4-page LaTeX paper with citations,
-- performs a structured peer review with NeurIPS-format scoring.
+| Plugin | Where it's used |
+|--------|----------------|
+| **superpowers** | Brainstorming during ideation, planning before BFTS stages |
+| **context7** | Library docs lookup before experiment code generation |
+| **code-review** | Code quality review between BFTS stages (complements Codex ML review) |
+| **astral** | ruff lint + format on experiment code before execution |
+| **claude-hud** | Status line display |
 
-### 2. Just Generate Research Ideas
-
-**You say:**
-> /ai-scientist:ideation --workshop examples/ideas/i_cant_believe_its_not_better.md --num-ideas 5
-
-**Typical output:**
-- 5 structured research proposals in JSON format,
-- each with title, hypothesis, abstract, experiments, and risk factors,
-- novelty-checked against Semantic Scholar literature.
-
-### 3. Search Academic Literature
-
-**You say:**
-> /ai-scientist:lit-search "vision language models for robotics"
-
-**Typical output:**
-- ranked papers with titles, authors, venues, citation counts,
-- abstracts and BibTeX entries for the most relevant results.
-
-### 4. Review an Existing Paper
-
-**You say:**
-> /ai-scientist:review --pdf path/to/paper.pdf
-
-**Typical output:**
-- structured review with strengths, weaknesses, and questions,
-- scores for originality, quality, clarity, significance (1-4),
-- overall score (1-10) and accept/reject decision,
-- per-figure visual quality assessment.
+All enhancements are optional — skip silently if not installed.
 
 ## Skills Reference
 
-12 skills covering the complete research lifecycle.
+| Skill | Description |
+|-------|-------------|
+| `/ai-scientist` | Full pipeline: ideation → experiment → plot → writeup → review |
+| `/ai-scientist:ideation` | Generate research ideas with literature search |
+| `/ai-scientist:experiment` | 4-stage BFTS experiment pipeline |
+| `/ai-scientist:experiment-step` | Single BFTS iteration (internal) |
+| `/ai-scientist:experiment-generate` | Code generation only (internal) |
+| `/ai-scientist:experiment-execute` | Execution only (internal) |
+| `/ai-scientist:plot` | Aggregate publication-quality figures |
+| `/ai-scientist:writeup` | LaTeX paper with built-in fact-checking per section |
+| `/ai-scientist:review` | Multi-layer peer review (single + panel + Codex) |
+| `/ai-scientist:codex-review` | Codex panel paper review (optional) |
+| `/ai-scientist:lit-search` | Standalone literature search |
+| `/ai-scientist:workshop` | Interactive workshop description creator |
 
-### Pipeline Orchestration
+## CLI Tools
 
-| Type | Skill | Description |
-|------|-------|-------------|
-| Orchestrator | `/ai-scientist` | Full pipeline: ideation → experiment → plot → writeup → review → optional revision loop. Supports `--dry-run` and `--revision-passes N`. |
+Installed via `uv pip install`. Always invoke with `uv run`:
 
-### Research & Experimentation
-
-| Type | Skill | Description |
-|------|-------|-------------|
-| Skill | `/ai-scientist:ideation` | Generate novel research ideas with parallel literature search (S2 + optional 78+ databases). |
-| Skill | `/ai-scientist:experiment` | 4-stage BFTS experiment orchestrator with parallel agents, deduplication, and structured logs. |
-| Internal | `/ai-scientist:experiment-step` | Single BFTS iteration: generate code, execute, parse metrics, analyze plots. |
-| Internal | `/ai-scientist:experiment-generate` | Code generation only (pairs with experiment-execute for failure recovery). |
-| Internal | `/ai-scientist:experiment-execute` | Execution only — run previously generated code, parse metrics, record node. |
-| Skill | `/ai-scientist:plot` | Aggregate publication-quality figures with optional journal-specific formatting. |
-
-### Writing & Review
-
-| Type | Skill | Description |
-|------|-------|-------------|
-| Skill | `/ai-scientist:writeup` | Generate LaTeX paper with automated citation gathering, IMRAD structure, and DOI verification. |
-| Skill | `/ai-scientist:review` | Structured peer review with NeurIPS-format scoring, evidence assessment, and optional Codex panel. |
-| Optional | `/ai-scientist:codex-review` | Codex panel review + code-methods alignment (requires codex-plugin-cc). |
-
-### Utilities
-
-| Type | Skill | Description |
-|------|-------|-------------|
-| Utility | `/ai-scientist:lit-search` | Standalone academic literature search (Semantic Scholar + WebSearch fallback). |
-| Utility | `/ai-scientist:workshop` | Interactive guide to create a workshop/topic description file. |
+```bash
+uv run ai-scientist-verify                       # Check environment
+uv run ai-scientist-device --info                # Detect CUDA/MPS/CPU
+uv run ai-scientist-config --config config.yaml  # Load/display config
+uv run ai-scientist-search "query" --limit 10    # Search papers (S2)
+uv run ai-scientist-state status <exp_dir>       # Experiment state
+uv run ai-scientist-metrics <file>               # Parse metrics
+uv run ai-scientist-latex compile <dir>          # Compile LaTeX
+uv run ai-scientist-pdf <file>                   # Extract PDF text
+uv run ai-scientist-budget --config config.yaml  # Estimate cost
+uv run ai-scientist-dashboard <exp_dir>          # Progress dashboard
+```
 
 ## Experiment Pipeline
 
-The experiment phase uses a **4-stage Best-First Tree Search (BFTS)**, faithfully adapted from AI-Scientist-v2's `AgentManager`.
+4-stage Best-First Tree Search (BFTS), adapted from AI-Scientist-v2:
 
-| Stage | Name | Goal | Max Iters |
-|-------|------|------|-----------|
-| 1 | Initial Implementation | Get working code on a simple dataset | 20 |
-| 2 | Baseline Tuning | Optimize hyperparameters without architecture changes | 12 |
-| 3 | Creative Research | Novel improvements across 3 HuggingFace datasets | 12 |
-| 4 | Ablation Studies | Systematic component contribution analysis | 18 |
+| Stage | Goal | Default Iters |
+|-------|------|---------------|
+| 1. Initial Implementation | Get working code on a simple dataset | 20 |
+| 2. Baseline Tuning | Optimize hyperparameters | 12 |
+| 3. Creative Research | Novel improvements across 3 datasets | 12 |
+| 4. Ablation Studies | Systematic component analysis | 18 |
 
-**How it works**
+Each iteration: generate code → lint with ruff → execute with timeout → parse metrics → analyze plots → update tree. Multiple agents work in parallel.
 
-- Each iteration: Claude generates Python code → executes with timeout → parses metrics from stdout → analyzes generated plots via native vision → updates the search tree.
-- Multiple agents explore the tree in parallel (configurable, default 2 workers).
-- Nodes branch as `draft` (new root), `debug` (fix buggy parent), or `improve` (enhance good parent).
-- Best nodes carry forward between stages. Multi-seed evaluation validates robustness.
-- Stage completion criteria mirror the original: Stage 1 needs one working node; Stage 2 needs convergence on 2+ datasets; Stage 3 checks execution time scaling; Stage 4 runs to completion.
+Between stages: code-review + optional Codex stage-gate review.
 
-## Python Tools
+## Paper Writing with Fact-Checking
 
-All tools are installed as CLI commands via `uv pip install`. Invoke with `uv run ai-scientist-<name>` (e.g., `uv run ai-scientist-verify`).
+The writeup phase includes built-in hallucination prevention:
 
-| Tool | Purpose |
-|------|---------|
-| `config.py` | Load and merge YAML configuration with CLI overrides (`--set key=value`). |
-| `device_utils.py` | Auto-detect CUDA / MPS / CPU; generate device preamble with `SEED` env var support. |
-| `search.py` | Semantic Scholar API with bibtex + graceful fallback for WebSearch. |
-| `state_manager.py` | JSON-based experiment state: journal, node tree, stage transitions, dedup check, structured logs. |
-| `metric_parser.py` | Extract metrics from experiment stdout; supports old and new metric formats. |
-| `latex_compiler.py` | Cross-platform pdflatex/bibtex compilation with error extraction. |
-| `pdf_reader.py` | PDF text extraction via pymupdf4llm / PyMuPDF / pypdf. |
-| `budget_estimator.py` | Estimate token usage and cost before running the pipeline. |
-| `verify_setup.py` | Validate all prerequisites (Python, PyTorch, LaTeX, Claude, Codex, scientific skills). |
+1. **Write** each section
+2. **Extract claims** — every metric, method detail, hyperparameter, citation, SOTA comparison
+3. **Verify** each claim against ground truth:
+   - Metrics → experiment journal
+   - Methods → actual experiment code
+   - Hyperparameters → execution logs
+   - Citations → S2/CrossRef
+   - SOTA claims → live web search
+   - Figures → actual plot files
+4. **Rate** each claim: verified / imprecise / unverifiable / false
+5. **Fix** false or imprecise claims before proceeding
+6. **Optional Codex cross-check** on Methods and Results sections
 
-## Project Structure
+Saves `claim_verification.json` for the review phase.
 
-```
-ai-scientist-skills/
-├── .claude-plugin/
-│   └── plugin.json            # Agent Skills plugin manifest
-├── skills/                    # 12 skills (Agent Skills standard)
-│   ├── ai-scientist/SKILL.md   #   Main orchestrator (dry-run, revision loop)
-│   ├── ideation/SKILL.md      #   Research idea generation (parallel lit search)
-│   ├── experiment/SKILL.md    #   4-stage BFTS pipeline
-│   ├── experiment-step/SKILL.md #  Single BFTS iteration (dedup, structured logs)
-│   ├── experiment-generate/    #   Code generation only (split from step)
-│   ├── experiment-execute/     #   Execution only (split from step)
-│   ├── plot/SKILL.md          #   Figure aggregation
-│   ├── writeup/SKILL.md       #   LaTeX paper generation
-│   ├── review/SKILL.md        #   Peer review + evidence assessment
-│   ├── codex-review/SKILL.md  #   Codex panel review (optional)
-│   ├── lit-search/SKILL.md    #   Literature search
-│   └── workshop/SKILL.md     #   Workshop description creator
-├── tools/                     # Python utilities (installed as CLI commands)
-│   ├── verify_setup.py        #   Environment verification
-│   ├── config.py              #   Configuration loading
-│   ├── device_utils.py        #   CUDA / MPS / CPU + SEED env var
-│   ├── search.py              #   Literature search (S2 + WebSearch)
-│   ├── state_manager.py       #   Experiment state, dedup, structured logs
-│   ├── metric_parser.py       #   Metric extraction from stdout
-│   ├── latex_compiler.py      #   pdflatex / bibtex wrapper
-│   ├── pdf_reader.py          #   PDF text extraction
-│   └── budget_estimator.py    #   Token usage / cost estimation
-├── scripts/
-│   └── pre-commit-check.py    #   Validate skills, config, step numbering
-├── templates/
-│   ├── latex/icml/             #   8-page ICML 2025 template
-│   ├── latex/icbinb/           #   4-page ICBINB workshop template
-│   ├── bfts_config.yaml        #   Default BFTS configuration
-│   ├── idea_schema.json        #   Research idea JSON schema
-│   └── review_fewshot/         #   Few-shot review examples
-├── examples/ideas/             # Example workshop descriptions & ideas
-├── CLAUDE.md                   # Claude Code project instructions
-├── requirements.txt
-└── pyproject.toml
-```
+## Review Pipeline
+
+Three independent review layers:
+
+1. **Claude single reviewer** — NeurIPS-style review (always runs)
+2. **Claude panel** — 3 personas (Empiricist, Theorist, Practitioner) + synthesis
+3. **Codex panel** — 3 personas + Area Chair + code-methods alignment (optional)
+
+Plus:
+- Scientific critical thinking assessment (GRADE framework, optional)
+- Cross-review comparison that flags divergences >2 points
+- 7 independent reviews total
 
 ## Configuration
 
-Edit `templates/bfts_config.yaml` or pass overrides at runtime:
+Edit `templates/bfts_config.yaml` or override at runtime:
 
 ```yaml
 agent:
-  num_workers: 2           # Parallel BFTS agents
+  num_workers: 2             # Parallel agents (1-2 for single GPU, 2-4 for multi-GPU)
   stages:
-    stage1_max_iters: 20   # Reduce for faster test runs
+    stage1_max_iters: 20     # Reduce for quick tests (e.g. 5/3/3/3)
     stage2_max_iters: 12
     stage3_max_iters: 12
     stage4_max_iters: 18
-  search:
-    num_drafts: 3          # Initial root nodes per stage
-    max_debug_depth: 3     # Max consecutive debug retries
-    debug_prob: 0.5        # Probability of retrying buggy nodes
 exec:
-  timeout: 3600            # Per-experiment timeout (seconds)
-writeup_type: icbinb       # "icbinb" (4-page) or "icml" (8-page)
-```
+  timeout: 3600              # Seconds per experiment run
+writeup_type: icbinb         # "icbinb" (4-page) or "icml" (8-page)
 
-### Environment Variables
-
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `S2_API_KEY` | No | Semantic Scholar API key for higher rate limits. Falls back to unauthenticated access or WebSearch. |
-| `SEED` | No | Random seed for experiment reproducibility (default: 42). Used by multi-seed evaluation: `SEED=123 uv run python3 runfile.py`. |
-
-### New Pipeline Features
-
-| Feature | Flag | Description |
-|---------|------|-------------|
-| **Dry run** | `--dry-run` | Validate environment and config without running experiments. |
-| **Revision loop** | `--revision-passes N` | Re-review and revise paper up to N times if score < threshold. |
-| **Budget estimate** | `uv run ai-scientist-budget --config templates/bfts_config.yaml` | Estimate token usage and cost before running. |
-| **Pre-commit check** | `uv run scripts/pre-commit-check.py` | Validate SKILL.md files, config, step numbering. |
-| **Deduplication** | Automatic | Content-hash check skips re-executing identical experiment code. |
-| **Structured logs** | Automatic | JSON log per experiment node in `logs/structured/`. |
-| **Parallel lit search** | Automatic | S2 + research-lookup + paper-lookup run as parallel agents. |
-
-### Revision Loop
-
-Enable automatic paper revision when review scores are low:
-
-```yaml
-revision:
-  enabled: true                # opt-in
-  score_threshold: 5           # revise if Overall < 5
-  max_passes: 2                # max revision cycles
-  prompt_before_revision: true # ask before each pass
-```
-
-Or pass `--revision-passes 3` to the orchestrator for one-off override.
-
-### Scientific Skills Integration (Optional)
-
-Install [claude-scientific-skills](https://github.com/K-Dense-AI/claude-scientific-skills) for enhanced research capabilities:
-
-```bash
-npx skills add K-Dense-AI/claude-scientific-skills
-```
-
-When scientific skills are available, the pipeline automatically:
-- Uses **78+ scientific databases** (UniProt, STRING, PubChem, ChEMBL, Reactome, etc.) during ideation
-- Searches **10 academic databases** (PubMed, arXiv, bioRxiv, OpenAlex, etc.) for literature
-- Applies **IMRAD prose structure** and **DOI verification** during paper writing
-- Generates **journal-specific figures** with colorblind-safe palettes and significance markers
-- Runs **GRADE evidence assessment** and **bias detection** during review
-
-Disable with `--no-scientific-skills` or in config:
-```yaml
-scientific_skills:
-  enabled: false
-```
-
-### Codex Integration (Optional)
-
-Install [codex-plugin-cc](https://github.com/stamate/codex-plugin-cc) for enhanced reviews:
-
-```bash
-npx skills add stamate/codex-plugin-cc
-npm install -g @openai/codex
-codex login
-```
-
-When Codex is available, the pipeline automatically:
-- Runs **panel paper review** with 3 personas (Empiricist, Theorist, Practitioner) + Area Chair synthesis
-- Performs **code-methods alignment** checking (paper claims vs. actual code)
-- Adds **adversarial code review** between BFTS experiment stages
-- Delegates **stuck experiment diagnosis** to Codex when Stage 1 fails
-
-Disable with `--no-codex` or in config:
-```yaml
+# Optional integrations
 codex:
-  enabled: false
+  enabled: auto              # auto | true | false
+  stage_gate_review: true
+  panel_paper_review: true
+  code_alignment: true
+  rescue_on_stuck: true
+scientific_skills:
+  enabled: auto
+revision:
+  enabled: false             # Opt-in: write → review → revise → re-review
+  score_threshold: 5
+  max_passes: 2
 ```
+
+Unknown config keys produce warnings (catches typos).
+
+## Environment Variables
+
+| Variable | Description |
+|----------|-------------|
+| `S2_API_KEY` | Semantic Scholar API key for higher rate limits (optional, falls back to WebSearch) |
+| `SEED` | Random seed for reproducibility (default: 42) |
+
+## Troubleshooting
+
+See [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for common issues: CUDA OOM, LaTeX errors, S2 rate limiting, stuck experiments, etc.
 
 ## Comparison with AI-Scientist-v2
 
 | Aspect | AI-Scientist-v2 | AI Scientist Skills |
 |--------|-----------------|---------------------|
-| Agent | Multiple LLM APIs (OpenAI, Anthropic, Gemini, etc.) | Claude Code only |
-| Interface | Python CLI scripts | Claude Code skills (`/ai-scientist`) |
-| Device support | CUDA only | CUDA, MPS (Apple Silicon), CPU |
-| State management | In-memory + pickle | JSON files (human-readable, resumable) |
-| Vision (VLM) | Separate VLM API calls | Claude's native vision |
-| Literature search | Semantic Scholar only | S2 + WebSearch fallback |
-| Parallelism | ProcessPoolExecutor | Claude Code Agent subagents |
-| Paper templates | ICML + ICBINB | ICML + ICBINB (same) |
-| Review format | NeurIPS JSON | NeurIPS JSON (same) |
-| Enhanced review | — | Optional Codex panel (3 personas + synthesis) |
-| Literature databases | Semantic Scholar only | Optional 78+ databases via scientific-skills |
-| Citation verification | None | Optional DOI validation via CrossRef |
-| Reproducibility | Manual seed management | `SEED` env var, automatic multi-seed validation |
-| Cost visibility | None | Token budget estimator before execution |
+| Agent | Multiple LLM APIs | Claude Code only |
+| Device support | CUDA only | CUDA, MPS, CPU |
+| State management | In-memory + pickle | JSON (human-readable, resumable) |
+| Literature search | Semantic Scholar only | S2 + WebSearch + 78+ databases (optional) |
+| Paper fact-checking | None | Per-section claim verification |
+| Review | Single reviewer | 7 independent reviews (Claude single + panel + Codex panel) |
+| Code review | None | ruff lint + code-review + Codex stage-gate |
+| Citation verification | None | DOI validation via CrossRef |
+| Cost visibility | None | Token budget estimator + progress dashboard |
 | Revision loop | None | Automatic write → review → revise → re-review |
-| Experiment dedup | None | Content-hash skips re-executing identical code |
-| Package manager | pip | uv (tools installed as CLI commands via `uv pip install`) |
+| Deduplication | None | Content-hash skips identical code |
+| Install | pip + manual setup | `curl \| bash` one-liner |
 
 ## License
 
-This project is a derivative work of [AI-Scientist-v2](https://github.com/SakanaAI/AI-Scientist) by Sakana AI, distributed under the [AI Scientist Source Code License](LICENSE). See [LICENSE](LICENSE) for full terms.
+Derivative work of [AI-Scientist-v2](https://github.com/SakanaAI/AI-Scientist) by Sakana AI. See [LICENSE](LICENSE).
 
 ## Acknowledgments
 
-Built with [Claude Code](https://claude.ai/claude-code) CLI.
-
-### References
-
-- **[AI-Scientist-v2](https://github.com/SakanaAI/AI-Scientist)** by Sakana AI — the original fully autonomous research system whose pipeline design this project faithfully adapts.
+- **[AI-Scientist-v2](https://github.com/SakanaAI/AI-Scientist)** by Sakana AI — the original pipeline this project adapts
+- **[claude-scientific-skills](https://github.com/K-Dense-AI/claude-scientific-skills)** by K-Dense — 134 scientific skills
+- Built with [Claude Code](https://claude.ai/claude-code)
