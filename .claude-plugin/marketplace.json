@@ -1,5 +1,5 @@
 {
-  "name": "ai-scientist-skills",
+  "name": "stm-ai-sci",
   "owner": {
     "name": "stamate"
   },
@@ -9,7 +9,7 @@
   },
   "plugins": [
     {
-      "name": "ai-scientist",
+      "name": "ai-sci",
       "description": "Full AI research pipeline: ideation, BFTS experiment, plot aggregation, paper writeup, and peer review — all driven by a single agent.",
       "source": "./",
       "skills": [

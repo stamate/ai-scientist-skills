@@ -44,7 +44,7 @@ Parse from the user's message. If none of `--workshop`, `--idea`, or `--exp-dir`
 
 0. **Locate plugin root** (required before any tool invocations):
    ```bash
-   export AISCIENTIST_ROOT=$(claude plugin list --json 2>/dev/null | python3 -c "import json,sys;print(next((p['installPath'] for p in json.load(sys.stdin) if 'ai-scientist' in p['id']),''))" 2>/dev/null)
+   export AISCIENTIST_ROOT=$(claude plugin list --json 2>/dev/null | python3 -c "import json,sys;print(next((p['installPath'] for p in json.load(sys.stdin) if 'ai-sci' in p['id']),''))" 2>/dev/null)
    [ -z "$AISCIENTIST_ROOT" ] && echo "ERROR: ai-scientist plugin not found"
    echo "AI Scientist root: $AISCIENTIST_ROOT"
    ```
@@ -107,7 +107,7 @@ Parse from the user's message. If none of `--workshop`, `--idea`, or `--exp-dir`
    Check if the claude-scientific-skills plugin is installed:
    ```bash
    # Check both global and project-local plugin paths for the research-lookup skill
-   claude plugin list --json 2>/dev/null | python3 -c "import json,sys;any('scientific' in p['id'] for p in json.load(sys.stdin)) and print('SCIENTIFIC_SKILLS_OK') or print('SCIENTIFIC_SKILLS_MISSING')" 2>/dev/null
+   claude plugin list --json 2>/dev/null | python3 -c "import json,sys;any('sci-skills' in p['id'] for p in json.load(sys.stdin)) and print('SCIENTIFIC_SKILLS_OK') or print('SCIENTIFIC_SKILLS_MISSING')" 2>/dev/null
    ```
    This checks for the `/research-lookup` skill which is present in claude-scientific-skills and claude-scientific-writer plugins.
    Also read the `scientific_skills.enabled` value from the loaded config (step 3).
