@@ -221,6 +221,14 @@ claude '/ai-scientist'  # interactive — guides you through topic creation
 CLAUDEMD
 ok "CLAUDE.md created (always regenerated to stay current)"
 
+# 7. Setup HUD status line
+echo "[6/6] HUD setup..."
+if claude -p '/claude-hud:setup' --no-input 2>/dev/null; then
+    ok "HUD status line configured"
+else
+    warn "HUD setup skipped — run '/claude-hud:setup' manually in Claude Code"
+fi
+
 echo ""
 echo "=== Done ==="
 echo ""
