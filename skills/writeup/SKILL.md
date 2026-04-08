@@ -146,6 +146,66 @@ Same structure plus:
 - Ensure all figures are referenced in the text
 - Keep within page limits (4 for icbinb, 8 for icml, excluding references)
 
+### 5b. Fact-Check Each Section (Hallucination Prevention)
+
+**Before compiling**, verify every section you just wrote. For each section of the paper, perform a structured fact-check pass. This catches hallucinations during writing, not after.
+
+#### Claim Extraction
+
+Read through the section and extract every factual claim into one of these categories:
+
+| Category | Example | Verification source |
+|----------|---------|-------------------|
+| **Metric claim** | "achieves 92.3% accuracy" | Experiment journal: `uv run ai-scientist-state best-node <exp_dir> <stage>` |
+| **Method detail** | "3-layer CNN with dropout 0.3" | Experiment code: `cat <exp_dir>/state/<stage>/best_solution_*.py` |
+| **Hyperparameter** | "trained for 100 epochs at lr=3e-4" | Experiment logs: `cat <exp_dir>/logs/step_*_output.txt` |
+| **Citation claim** | "Smith et al. showed X outperforms Y" | S2/CrossRef: `uv run ai-scientist-search "Smith <topic>" --json` or CrossRef MCP |
+| **SOTA comparison** | "current SOTA is 91.2%" | Live search: use WebSearch or S2 to find actual current SOTA |
+| **Figure reference** | "as shown in Figure 2, loss decreases" | Actual figure: Read the PNG with the Read tool and verify |
+| **Dataset claim** | "evaluated on 50K training samples" | Experiment code/logs: check actual data loading |
+
+#### Verification Process
+
+For each extracted claim:
+
+1. **Check against ground truth source** (see table above)
+2. **Rate the claim**:
+   - **Verified** — ground truth confirms the claim exactly
+   - **Imprecise** — close but numbers don't match exactly → fix to match ground truth
+   - **Unverifiable** — no ground truth available → either add a citation, hedge the language ("approximately", "we estimate"), or remove
+   - **False** — contradicts ground truth → rewrite immediately
+3. **Fix before proceeding** — do not move to the next section with unresolved false or imprecise claims
+
+#### Codex Cross-Check (Optional)
+
+If Codex is available and `codex.code_alignment` is true, delegate an independent verification pass for the Methods and Results sections:
+
+```
+/codex:rescue --fresh --wait "Fact-check this paper section against the experiment code and logs. The paper claims: [paste section text]. The experiment code is at: <exp_dir>/state/<stage>/best_solution_*.py. The experiment logs are at: <exp_dir>/logs/. Check: (1) Do the reported metrics match actual metrics in the logs? (2) Does the methods description match the actual code? (3) Are hyperparameters accurately reported? Report any discrepancies."
+```
+
+If Codex flags discrepancies, fix them before compiling.
+
+#### Claim Log
+
+Save the verification results for the review phase:
+```bash
+cat > <exp_dir>/claim_verification.json << 'JSON_EOF'
+{
+  "total_claims": <N>,
+  "verified": <N>,
+  "fixed": <N>,
+  "unverifiable": <N>,
+  "false_caught": <N>,
+  "codex_checked": true|false,
+  "sections_checked": ["abstract", "introduction", "method", "results", "discussion"],
+  "issues_found": [
+    {"section": "results", "claim": "...", "status": "fixed", "detail": "metric was 0.891, not 0.921"}
+  ]
+}
+JSON_EOF
+```
+
 ### 6. Compile and Check
 
 ```bash
@@ -168,15 +228,18 @@ For each reflection round:
 
 1. Check the compiled PDF page count — ensure within limits
 2. Run chktex for LaTeX warnings (if available)
-3. Re-read the paper content critically:
+3. **Re-run fact-check** on any sections you modified this round (same process as step 5b — extract claims, verify against ground truth, fix discrepancies)
+4. Re-read the paper content critically:
    - Is the abstract accurate given the actual results?
    - Are all figures referenced and described?
    - Are all citations used in the text?
    - Is the writing clear and concise?
    - Are there any LaTeX errors or formatting issues?
-4. Make improvements and recompile
+   - **Do all numbers in the paper match the experiment journal?**
+   - **Are there any hedged or vague claims that could be made specific?**
+5. Make improvements and recompile
 
-If everything looks good, declare "I am done" and exit the loop.
+If everything looks good AND the claim verification log shows zero unresolved issues, declare "I am done" and exit the loop.
 
 ### 8. Finalize
 
