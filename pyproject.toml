@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ai-scientist-skills"
-version = "0.4.1"
+version = "0.4.2"
 description = "AI Scientist research pipeline as Claude Code skills"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -37,6 +37,9 @@ dependencies = [
     "rich>=13.0",
 ]
 
+[project.optional-dependencies]
+modal = ["modal>=0.73"]
+
 [project.urls]
 Homepage = "https://github.com/stamate/ai-scientist-skills"
 Repository = "https://github.com/stamate/ai-scientist-skills"
@@ -62,3 +65,4 @@ ai-scientist-latex = "tools.latex_compiler:main"
 ai-scientist-pdf = "tools.pdf_reader:main"
 ai-scientist-budget = "tools.budget_estimator:main"
 ai-scientist-dashboard = "tools.dashboard:main"
+ai-scientist-modal-run = "tools.modal_runner:main"

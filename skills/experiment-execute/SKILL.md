@@ -44,7 +44,7 @@ cd <exp_dir>/workspace && timeout 3600 uv run python3 runfile.py 2>&1 | tee <exp
 
 **If `compute.backend` is `modal`**: Run on Modal cloud GPU:
 ```bash
-cd <exp_dir>/workspace && modal run --detach runfile.py 2>&1 | tee <exp_dir>/logs/step_<N>_output.txt
+uv run ai-scientist-modal-run <exp_dir>/workspace/runfile.py --gpu <compute.modal.gpu from config> --output-log <exp_dir>/logs/step_<N>_output.txt
 ```
 If Modal fails, fall back to local and warn the user.
 
