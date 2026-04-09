@@ -57,15 +57,25 @@ curl -fsSL https://raw.githubusercontent.com/stamate/ai-scientist-skills/main/sc
    ```
    If verify fails, **stop and guide the user** through fixing the issues.
 
-   The config includes `compute.backend` (set during install: `local` or `modal`). Report the compute backend in the Phase 0 summary. If `modal`, experiments will run on Modal.com cloud GPUs.
+1. **Check compute backend**:
 
-1. **Check LaTeX** (optional, only needed for writeup):
+   Read `compute.backend` from the config output (step 0). If it says `modal`:
+   ```bash
+   uv run modal profile current 2>&1
+   ```
+   If authenticated, report: "Compute: ✓ Modal.com with <gpu> GPU (authenticated)"
+   If NOT authenticated, warn: "Compute: ! Modal configured but not authenticated — run 'uv run modal setup'"
+
+   If `compute.backend` is `local`:
+   Report: "Compute: ✓ Local (<device from step 0>)"
+
+2. **Check LaTeX** (optional, only needed for writeup):
    ```bash
    uv run ai-scientist-latex check
    ```
    Warn if pdflatex or bibtex is missing — the experiment can still run, paper generation will be skipped.
 
-2. **Detect Codex** (optional enhancement):
+3. **Detect Codex** (optional enhancement):
 
    Check four conditions — CLI binary, Claude Code plugin, authentication, and config toggle:
    ```bash
@@ -90,7 +100,7 @@ curl -fsSL https://raw.githubusercontent.com/stamate/ai-scientist-skills/main/sc
    - If CLI + plugin found but auth failed: "Codex installed but not authenticated — run: codex login"
    - If `CODEX_ENABLED=false`: "Codex not enabled — using standard pipeline"
 
-3. **Detect claude-scientific-skills** (optional enhancement):
+4. **Detect claude-scientific-skills** (optional enhancement):
 
    Check if the claude-scientific-skills plugin is installed:
    ```bash
