@@ -56,7 +56,7 @@ for mkt in stm-ai-sci stm-codex claude-scientific-skills claude-plugins-official
 done
 ok "Marketplaces added and updated"
 
-# 4. Install plugins at project scope
+# 4. Install plugins at local scope
 echo "[3/6] Plugins..."
 core_plugins=(
     "ai-scientist@stm-ai-sci"
@@ -74,8 +74,8 @@ extra_plugins=(
 core_ok=0
 for plugin in "${core_plugins[@]}"; do
     # Force reinstall to ensure latest version from marketplace
-    claude plugin uninstall "$plugin" --scope project 2>/dev/null || true
-    if claude plugin install "$plugin" --scope project 2>/dev/null; then
+    claude plugin uninstall "$plugin" --scope local 2>/dev/null || true
+    if claude plugin install "$plugin" --scope local 2>/dev/null; then
         ok "$plugin"
         ((core_ok++))
     else
@@ -84,7 +84,7 @@ for plugin in "${core_plugins[@]}"; do
 done
 
 for plugin in "${extra_plugins[@]}"; do
-    if claude plugin install "$plugin" --scope project 2>/dev/null; then
+    if claude plugin install "$plugin" --scope local 2>/dev/null; then
         ok "$plugin"
     else
         warn "$plugin (optional, skipped)"
@@ -93,9 +93,9 @@ done
 
 if [ $core_ok -lt 3 ]; then
     warn "Some core plugins failed. Install manually:"
-    echo "    claude plugin install ai-scientist@stm-ai-sci --scope project"
-    echo "    claude plugin install codex@stm-codex --scope project"
-    echo "    claude plugin install scientific-skills@claude-scientific-skills --scope project"
+    echo "    claude plugin install ai-scientist@stm-ai-sci --scope local"
+    echo "    claude plugin install codex@stm-codex --scope local"
+    echo "    claude plugin install scientific-skills@claude-scientific-skills --scope local"
 fi
 
 # 5. Choose compute backend
