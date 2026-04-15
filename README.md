@@ -39,10 +39,28 @@ curl -fsSL https://raw.githubusercontent.com/stamate/ai-scientist-skills/main/sc
 
 This single command:
 - Creates `.venv` with all Python deps (torch, numpy, matplotlib, transformers, etc.)
-- Installs 8 Claude Code plugins at project scope
-- Updates marketplace caches to latest versions
-- Generates `CLAUDE.md` with environment instructions
+- Installs 2 Claude Code plugins at local scope: `ai-scientist` + `codex`
+- Symlinks 7 curated scientific skills into `.claude/skills/` (shallow-cloned from `claude-scientific-writer` + `claude-scientific-skills` into `.aisci-cache/`)
+- Generates `CLAUDE.md` and `config.yaml`
 - Verifies the installation
+
+### Best-experience extras (optional)
+
+The pipeline references these plugins as graceful-fallback enhancements — install them for the full experience:
+
+```bash
+claude plugin install superpowers@claude-plugins-official --scope local
+claude plugin install context7@claude-plugins-official    --scope local
+claude plugin install code-review@claude-plugins-official --scope local
+```
+
+| Plugin | Where the pipeline uses it |
+|---|---|
+| **superpowers** | `/superpowers:brainstorming` during ideation; `/superpowers:writing-plans` at each BFTS stage start |
+| **context7** | Library docs lookup before experiment code generation (avoids stale PyTorch/transformers APIs) |
+| **code-review** | General code review between BFTS stages — complements Codex's ML-specific review |
+
+All three are optional — the pipeline works without them. For lint/format, `uv pip install ruff` is enough (no plugin needed).
 
 ### Run
 
@@ -65,29 +83,34 @@ claude '/ai-scientist --workshop topic.md' # from a workshop description
 
 Each phase can also run independently as a standalone skill.
 
-## Installed Plugins
+## What Gets Installed
 
-The install script sets up 8 plugins:
+The install script sets up 2 plugins and 7 symlinked skills.
 
-### Core
+### Plugins (at local scope)
 
 | Plugin | Purpose |
 |--------|---------|
 | **ai-scientist** | Full research pipeline (ideation, experiment, writeup, review) |
 | **codex** | Codex delegation, panel reviews (3 personas), code-methods alignment |
-| **scientific-skills** | 134 scientific skills (78+ databases, tools, analysis) |
 
-### Enhancements
+### Scientific skills (symlinked into `.claude/skills/`)
 
-| Plugin | Where it's used |
-|--------|----------------|
-| **superpowers** | Brainstorming during ideation, planning before BFTS stages |
-| **context7** | Library docs lookup before experiment code generation |
-| **code-review** | Code quality review between BFTS stages (complements Codex ML review) |
-| **astral** | ruff lint + format on experiment code before execution |
-| **claude-hud** | Status line display |
+Instead of installing either of the upstream monoliths (`claude-scientific-skills` has 134 skills; `claude-scientific-writer` has 19) the installer shallow-clones both into `.aisci-cache/` and symlinks only the 7 the pipeline actually references — avoiding mistrigger risk from medical / grant / poster skills that don't belong in an ML research workflow.
 
-All enhancements are optional — skip silently if not installed.
+| Skill | Source | Used in |
+|-------|--------|---------|
+| **research-lookup** | claude-scientific-writer | Ideation (Parallel / Perplexity academic search) |
+| **paper-lookup** | claude-scientific-skills | Ideation (10 academic paper databases) |
+| **database-lookup** | claude-scientific-skills | Ideation (78 scientific databases) |
+| **scientific-writing** | claude-scientific-writer | Writeup (IMRAD prose, two-stage drafting) |
+| **citation-management** | claude-scientific-writer | Writeup (BibTeX + DOI verification) |
+| **scientific-visualization** | claude-scientific-skills | Plot (journal-style figures) |
+| **scientific-critical-thinking** | claude-scientific-writer | Review (GRADE framework, bias detection) |
+
+### Extras you can add separately
+
+See [Best-experience extras](#best-experience-extras-optional) above for the three optional plugins (superpowers, context7, code-review) the pipeline references as graceful-fallback enhancements.
 
 ## Skills Reference
 
