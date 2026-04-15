@@ -27,7 +27,7 @@ for cmd in uv claude; do
 done
 
 # 2. Create .venv and install Python tools
-echo "[1/6] Python tools..."
+echo "[1/7] Python tools..."
 if [ -d ".venv" ]; then
     warn ".venv exists — upgrading packages"
     uv pip install --upgrade "git+${REPO}" --quiet 2>&1 || {
@@ -47,28 +47,21 @@ fi
 ok "torch, numpy, matplotlib, seaborn, transformers, etc."
 
 # 3. Add and update marketplaces
-echo "[2/6] Marketplaces..."
-for repo in stamate/ai-scientist-skills stamate/codex-plugin-cc K-Dense-AI/claude-scientific-skills; do
+echo "[2/7] Marketplaces..."
+for repo in stamate/ai-scientist-skills stamate/codex-plugin-cc K-Dense-AI/claude-scientific-writer; do
     claude plugin marketplace add "$repo" 2>/dev/null || true
 done
-for mkt in stm-ai-sci stm-codex claude-scientific-skills claude-plugins-official astral-sh claude-hud; do
+for mkt in stm-ai-sci stm-codex claude-scientific-writer; do
     claude plugin marketplace update "$mkt" 2>/dev/null || true
 done
 ok "Marketplaces added and updated"
 
 # 4. Install plugins at local scope
-echo "[3/6] Plugins..."
+echo "[3/7] Plugins..."
 core_plugins=(
     "ai-scientist@stm-ai-sci"
     "codex@stm-codex"
-    "scientific-skills@claude-scientific-skills"
-)
-extra_plugins=(
-    "superpowers@claude-plugins-official"
-    "context7@claude-plugins-official"
-    "code-review@claude-plugins-official"
-    "astral@astral-sh"
-    "claude-hud@claude-hud"
+    "claude-scientific-writer@claude-scientific-writer"
 )
 
 core_ok=0
@@ -83,23 +76,45 @@ for plugin in "${core_plugins[@]}"; do
     fi
 done
 
-for plugin in "${extra_plugins[@]}"; do
-    if claude plugin install "$plugin" --scope local 2>/dev/null; then
-        ok "$plugin"
-    else
-        warn "$plugin (optional, skipped)"
-    fi
-done
-
 if [ $core_ok -lt 3 ]; then
     warn "Some core plugins failed. Install manually:"
     echo "    claude plugin install ai-scientist@stm-ai-sci --scope local"
     echo "    claude plugin install codex@stm-codex --scope local"
-    echo "    claude plugin install scientific-skills@claude-scientific-skills --scope local"
+    echo "    claude plugin install claude-scientific-writer@claude-scientific-writer --scope local"
+fi
+
+# 4b. Gap skills from scientific-skills (subset only — avoids the 134-skill full install)
+echo "[4/7] Gap skills from scientific-skills..."
+GAP_CACHE=".aisci-cache/scientific-skills"
+GAP_SKILLS=(paper-lookup database-lookup scientific-visualization)
+
+if [ ! -d "$GAP_CACHE/.git" ]; then
+    mkdir -p "$(dirname "$GAP_CACHE")"
+    git clone --depth=1 https://github.com/K-Dense-AI/claude-scientific-skills.git "$GAP_CACHE" --quiet 2>&1 \
+        || warn "Failed to clone scientific-skills — gap skills skipped"
+else
+    (cd "$GAP_CACHE" && git pull --quiet --ff-only 2>&1) \
+        || warn "Gap skills cache update failed — using existing copy"
+fi
+
+if [ -d "$GAP_CACHE/scientific-skills" ]; then
+    mkdir -p .claude/skills
+    CACHE_ABS="$(cd "$GAP_CACHE" && pwd)"
+    for s in "${GAP_SKILLS[@]}"; do
+        src="$CACHE_ABS/scientific-skills/$s"
+        if [ -d "$src" ]; then
+            ln -sfn "$src" ".claude/skills/$s"
+            ok "$s"
+        else
+            warn "$s not found in cache"
+        fi
+    done
+else
+    warn "scientific-skills cache missing — gap skills skipped"
 fi
 
 # 5. Choose compute backend
-echo "[4/6] Compute backend..."
+echo "[5/7] Compute backend..."
 # Copy default config to project if not present
 if [ ! -f config.yaml ]; then
     uv run ai-scientist-config --config templates/bfts_config.yaml > config.yaml 2>/dev/null
@@ -197,7 +212,7 @@ else
 fi
 
 # 6. Verify installation
-echo "[5/6] Verifying..."
+echo "[6/7] Verifying..."
 if uv run ai-scientist-verify --quiet 2>/dev/null; then
     ok "Environment check passed"
 else
@@ -205,7 +220,7 @@ else
 fi
 
 # 7. Create/update CLAUDE.md
-echo "[6/6] CLAUDE.md..."
+echo "[7/7] CLAUDE.md..."
 cat > CLAUDE.md << 'CLAUDEMD'
 # AI Scientist Skills
 
@@ -258,14 +273,14 @@ uv run ai-scientist-budget --config config.yaml
 ### Core
 - **ai-scientist** — Full research pipeline (ideation, experiment, writeup, review)
 - **codex** — Codex delegation and code review (3 personas: Empiricist, Theorist, Practitioner)
-- **scientific-skills** — 134 scientific skills (databases, tools, analysis)
+- **claude-scientific-writer** — 19 writing-focused skills (research-lookup, scientific-writing, citation-management, peer-review, literature-review, scholar-evaluation, scientific-critical-thinking, venue-templates, research-grants, hypothesis-generation, …)
 
-### Enhancements
-- **superpowers** — Planning before BFTS stages, brainstorming during ideation
-- **context7** — Library docs lookup before experiment code generation
-- **code-review** — Code quality review between BFTS stages (complements Codex ML review)
-- **astral** — ruff lint + format on experiment code before execution
-- **claude-hud** — Status line display
+### Gap skills (symlinked from claude-scientific-skills into `.claude/skills/`)
+- **paper-lookup** — 10 academic paper databases (PubMed, PMC, bioRxiv, arXiv, OpenAlex, Crossref, S2, CORE, Unpaywall, medRxiv)
+- **database-lookup** — 78 scientific databases (PubChem, ChEMBL, UniProt, Ensembl, PDB, AlphaFold, ClinicalTrials, FDA, …)
+- **scientific-visualization** — publication-ready multi-panel figures (Nature/Science/Cell styling)
+
+Any global plugins you already have (superpowers, context7, code-review, astral, claude-hud, …) continue to work on top — they're installed separately at user scope, not re-installed here.
 
 ## Codex Integration (Optional)
 
@@ -286,13 +301,16 @@ codex:
   venue: auto             # auto | neurips | icml | iclr | workshop
 ```
 
-## Scientific Skills Integration (Optional)
+## Scientific Writer + Gap Skills
 
-When claude-scientific-skills is installed:
-- Multi-database literature search during ideation
-- Enhanced scientific writing during writeup
-- Publication-quality figure formatting
-- Evidence quality assessment during review (GRADE framework)
+The pipeline uses **claude-scientific-writer** (plugin, 19 skills) plus three **gap skills** symlinked from claude-scientific-skills:
+
+- **Ideation / literature**: `research-lookup` (writer), `paper-lookup` (gap, 10 DBs), `database-lookup` (gap, 78 DBs), `literature-review` (writer)
+- **Writeup**: `scientific-writing` + `citation-management` + `venue-templates` (writer)
+- **Figures**: `scientific-visualization` (gap, journal-style) — complements `scientific-schematics` + `scientific-slides` (writer)
+- **Review**: `scientific-critical-thinking` + `peer-review` + `scholar-evaluation` (writer)
+
+Gap skills live in `.claude/skills/*` as symlinks into `.aisci-cache/scientific-skills/` (created by the installer). To refresh, rerun the installer or `git pull` inside that cache dir.
 
 Control via config:
 ```yaml
