@@ -26,7 +26,9 @@ echo ""
 # present, and only then run `command -v`.
 
 # Add common binary dirs to PATH if they exist and aren't already there.
+# $HOME/.claude/local is where Claude Code's native installer puts the binary.
 for p in \
+    "$HOME/.claude/local" \
     "$HOME/.local/bin" \
     "$HOME/.npm-global/bin" \
     "$HOME/.cargo/bin" \
