@@ -19,9 +19,50 @@ echo "=== AI Scientist Skills — Install ==="
 echo ""
 
 # 1. Check prerequisites
+#
+# Under `curl | bash` the shell is non-interactive and does NOT source
+# ~/.bashrc / ~/.zshrc, so tools installed via nvm/npm/uv often aren't
+# on PATH. Common on WSL. Probe likely install locations, source nvm if
+# present, and only then run `command -v`.
+
+# Add common binary dirs to PATH if they exist and aren't already there.
+for p in \
+    "$HOME/.local/bin" \
+    "$HOME/.npm-global/bin" \
+    "$HOME/.cargo/bin" \
+    "$HOME/.volta/bin" \
+    "/usr/local/bin" \
+    "/opt/homebrew/bin"
+do
+    case ":$PATH:" in
+        *":$p:"*) ;;
+        *) [ -d "$p" ] && PATH="$p:$PATH" ;;
+    esac
+done
+
+# nvm doesn't put its node bin on PATH until sourced.
+if [ -s "$HOME/.nvm/nvm.sh" ]; then
+    export NVM_DIR="$HOME/.nvm"
+    # shellcheck source=/dev/null
+    . "$HOME/.nvm/nvm.sh" >/dev/null 2>&1 || true
+fi
+
+export PATH
+
 for cmd in uv claude; do
     if ! command -v "$cmd" &>/dev/null; then
-        fail "$cmd not found. Please install it first."
+        fail "$cmd not found on PATH."
+        echo ""
+        echo "    Non-interactive shells (like 'curl | bash') don't source your"
+        echo "    shell rc files, so tools installed via nvm/npm/uv may be missing"
+        echo "    from PATH even if 'which $cmd' works in your normal terminal."
+        echo ""
+        echo "    Find where $cmd lives, then retry with PATH prepended:"
+        echo "      which $cmd        # in a normal terminal"
+        echo "      PATH=\"<that-dir>:\$PATH\" bash <(curl -fsSL <this-script-url>)"
+        echo ""
+        echo "    Or download and run the script directly:"
+        echo "      curl -fsSL <this-script-url> -o install.sh && bash install.sh"
         exit 1
     fi
 done
