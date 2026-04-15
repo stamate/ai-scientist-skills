@@ -12,6 +12,7 @@ import platform
 import re
 import shutil
 import subprocess
+from pathlib import Path
 import sys
 from pathlib import Path
 
@@ -203,28 +204,32 @@ def check_codex() -> bool:
 
 
 def check_scientific_skills() -> bool:
-    """Check if claude-scientific-skills plugin is installed (optional enhancement)."""
-    # Check via official Claude plugin API
-    plugin_found = False
-    claude_bin = shutil.which("claude")
-    if claude_bin:
-        try:
-            result = subprocess.run(
-                [claude_bin, "plugin", "list", "--json"],
-                capture_output=True, text=True, timeout=15,
-            )
-            import json as _json
-            plugins = _json.loads(result.stdout) if result.returncode == 0 else []
-            plugin_found = any("scientific" in p.get("id", "") for p in plugins)
-        except Exception:
-            pass
-    if plugin_found:
-        print(f"  {CHECK} claude-scientific-skills plugin — enhanced literature, writing, and review available")
+    """Check the 7 scientific skills symlinked into .claude/skills/ by install.sh.
+
+    The pipeline uses a curated 7-skill subset (4 from claude-scientific-writer +
+    3 from claude-scientific-skills) symlinked from .aisci-cache/ into
+    .claude/skills/. We don't install either plugin in full — too much bloat
+    and mistrigger risk from unused skills.
+    """
+    expected = [
+        "research-lookup", "scientific-writing", "citation-management",
+        "scientific-critical-thinking", "paper-lookup", "database-lookup",
+        "scientific-visualization",
+    ]
+    skills_dir = Path(".claude/skills")
+    present = [s for s in expected if (skills_dir / s).exists()]
+    missing = [s for s in expected if s not in present]
+
+    if not missing:
+        print(f"  {CHECK} All 7 scientific skills symlinked ({', '.join(present[:3])}, +4 more)")
         return True
+
+    if present:
+        print(f"  {WARN} {len(present)}/7 scientific skills present; missing: {', '.join(missing)}")
     else:
-        print(f"  {WARN} claude-scientific-skills not found — standard pipeline only (optional)")
-        print(f"      Install: claude install gh:stamate/claude-scientific-skills")
-        return False
+        print(f"  {WARN} No scientific skills in .claude/skills/ — rerun install.sh")
+    print(f"      Reinstall: curl -fsSL https://raw.githubusercontent.com/stamate/ai-scientist-skills/main/scripts/install.sh | bash")
+    return False
 
 
 def main():
