@@ -48,10 +48,10 @@ ok "torch, numpy, matplotlib, seaborn, transformers, etc."
 
 # 3. Add and update marketplaces
 echo "[2/7] Marketplaces..."
-for repo in stamate/ai-scientist-skills stamate/codex-plugin-cc K-Dense-AI/claude-scientific-writer; do
+for repo in stamate/ai-scientist-skills stamate/codex-plugin-cc; do
     claude plugin marketplace add "$repo" 2>/dev/null || true
 done
-for mkt in stm-ai-sci stm-codex claude-scientific-writer; do
+for mkt in stm-ai-sci stm-codex; do
     claude plugin marketplace update "$mkt" 2>/dev/null || true
 done
 ok "Marketplaces added and updated"
@@ -61,7 +61,6 @@ echo "[3/7] Plugins..."
 core_plugins=(
     "ai-scientist@stm-ai-sci"
     "codex@stm-codex"
-    "claude-scientific-writer@claude-scientific-writer"
 )
 
 core_ok=0
@@ -76,41 +75,55 @@ for plugin in "${core_plugins[@]}"; do
     fi
 done
 
-if [ $core_ok -lt 3 ]; then
+if [ $core_ok -lt 2 ]; then
     warn "Some core plugins failed. Install manually:"
     echo "    claude plugin install ai-scientist@stm-ai-sci --scope local"
     echo "    claude plugin install codex@stm-codex --scope local"
-    echo "    claude plugin install claude-scientific-writer@claude-scientific-writer --scope local"
 fi
 
-# 4b. Gap skills from scientific-skills (subset only — avoids the 134-skill full install)
-echo "[4/7] Gap skills from scientific-skills..."
-GAP_CACHE=".aisci-cache/scientific-skills"
-GAP_SKILLS=(paper-lookup database-lookup scientific-visualization)
+# 4b. Scientific skills — symlinked subset (only the 7 skills the pipeline actually uses).
+# Avoids plugin-level bloat (134 skills from scientific-skills, 19 from scientific-writer)
+# by shallow-cloning both upstreams into .aisci-cache/ and symlinking only what's used.
+echo "[4/7] Scientific skills (symlinked subset)..."
 
-if [ ! -d "$GAP_CACHE/.git" ]; then
-    mkdir -p "$(dirname "$GAP_CACHE")"
-    git clone --depth=1 https://github.com/K-Dense-AI/claude-scientific-skills.git "$GAP_CACHE" --quiet 2>&1 \
-        || warn "Failed to clone scientific-skills — gap skills skipped"
-else
-    (cd "$GAP_CACHE" && git pull --quiet --ff-only 2>&1) \
-        || warn "Gap skills cache update failed — using existing copy"
-fi
+WRITER_CACHE=".aisci-cache/scientific-writer"
+LOOKUP_CACHE=".aisci-cache/scientific-skills"
+WRITER_SKILLS=(research-lookup scientific-writing citation-management scientific-critical-thinking)
+LOOKUP_SKILLS=(paper-lookup database-lookup scientific-visualization)
 
-if [ -d "$GAP_CACHE/scientific-skills" ]; then
+clone_or_pull() {
+    local cache="$1" repo="$2"
+    if [ ! -d "$cache/.git" ]; then
+        mkdir -p "$(dirname "$cache")"
+        git clone --depth=1 "$repo" "$cache" --quiet 2>&1 \
+            || { warn "Failed to clone $repo"; return 1; }
+    else
+        (cd "$cache" && git pull --quiet --ff-only 2>&1) \
+            || warn "Cache update failed for $cache — using existing copy"
+    fi
+    return 0
+}
+
+symlink_skills() {
+    local src_base="$1"; shift
     mkdir -p .claude/skills
-    CACHE_ABS="$(cd "$GAP_CACHE" && pwd)"
-    for s in "${GAP_SKILLS[@]}"; do
-        src="$CACHE_ABS/scientific-skills/$s"
+    for s in "$@"; do
+        local src="$src_base/$s"
         if [ -d "$src" ]; then
             ln -sfn "$src" ".claude/skills/$s"
             ok "$s"
         else
-            warn "$s not found in cache"
+            warn "$s not found in $src_base"
         fi
     done
-else
-    warn "scientific-skills cache missing — gap skills skipped"
+}
+
+if clone_or_pull "$WRITER_CACHE" "https://github.com/K-Dense-AI/claude-scientific-writer.git"; then
+    symlink_skills "$(cd "$WRITER_CACHE" && pwd)/skills" "${WRITER_SKILLS[@]}"
+fi
+
+if clone_or_pull "$LOOKUP_CACHE" "https://github.com/K-Dense-AI/claude-scientific-skills.git"; then
+    symlink_skills "$(cd "$LOOKUP_CACHE" && pwd)/scientific-skills" "${LOOKUP_SKILLS[@]}"
 fi
 
 # 5. Choose compute backend
@@ -270,12 +283,21 @@ uv run ai-scientist-budget --config config.yaml
 
 ## Installed Plugins
 
-### Core
+### Core plugins
 - **ai-scientist** — Full research pipeline (ideation, experiment, writeup, review)
 - **codex** — Codex delegation and code review (3 personas: Empiricist, Theorist, Practitioner)
-- **claude-scientific-writer** — 19 writing-focused skills (research-lookup, scientific-writing, citation-management, peer-review, literature-review, scholar-evaluation, scientific-critical-thinking, venue-templates, research-grants, hypothesis-generation, …)
 
-### Gap skills (symlinked from claude-scientific-skills into `.claude/skills/`)
+### Symlinked scientific skills (in `.claude/skills/`)
+
+Only the 7 skills the pipeline actually references — shallow-cloned from the upstream repos into `.aisci-cache/` and symlinked in. No scientific-writer or scientific-skills plugin is installed (avoids 153 unused skills and the mistrigger risk that comes with them).
+
+From **claude-scientific-writer**:
+- **research-lookup** — Parallel API / Perplexity academic search
+- **scientific-writing** — IMRAD prose, two-stage outline → paragraphs
+- **citation-management** — BibTeX, DOI verification via CrossRef
+- **scientific-critical-thinking** — GRADE framework, bias detection
+
+From **claude-scientific-skills**:
 - **paper-lookup** — 10 academic paper databases (PubMed, PMC, bioRxiv, arXiv, OpenAlex, Crossref, S2, CORE, Unpaywall, medRxiv)
 - **database-lookup** — 78 scientific databases (PubChem, ChEMBL, UniProt, Ensembl, PDB, AlphaFold, ClinicalTrials, FDA, …)
 - **scientific-visualization** — publication-ready multi-panel figures (Nature/Science/Cell styling)
@@ -301,16 +323,16 @@ codex:
   venue: auto             # auto | neurips | icml | iclr | workshop
 ```
 
-## Scientific Writer + Gap Skills
+## Scientific skills — where they slot in
 
-The pipeline uses **claude-scientific-writer** (plugin, 19 skills) plus three **gap skills** symlinked from claude-scientific-skills:
+The 7 symlinked skills map directly to pipeline phases:
 
-- **Ideation / literature**: `research-lookup` (writer), `paper-lookup` (gap, 10 DBs), `database-lookup` (gap, 78 DBs), `literature-review` (writer)
-- **Writeup**: `scientific-writing` + `citation-management` + `venue-templates` (writer)
-- **Figures**: `scientific-visualization` (gap, journal-style) — complements `scientific-schematics` + `scientific-slides` (writer)
-- **Review**: `scientific-critical-thinking` + `peer-review` + `scholar-evaluation` (writer)
+- **Ideation** (lit search): `research-lookup`, `paper-lookup`, `database-lookup`
+- **Writeup**: `scientific-writing`, `citation-management`
+- **Plot**: `scientific-visualization`
+- **Review**: `scientific-critical-thinking`
 
-Gap skills live in `.claude/skills/*` as symlinks into `.aisci-cache/scientific-skills/` (created by the installer). To refresh, rerun the installer or `git pull` inside that cache dir.
+Skills live in `.claude/skills/*` as symlinks into `.aisci-cache/` (two shallow clones: `scientific-writer/` and `scientific-skills/`). To refresh, rerun the installer — it `git pull`s both caches.
 
 Control via config:
 ```yaml
